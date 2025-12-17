@@ -7,18 +7,26 @@ import LeftControlPanel from "@/components/canvas/left-control-panel/left-contro
 import { useEffect, useRef, useState } from "react";
 import useChairsStore from "@/store/use-chairs";
 import Chair from "./chair";
+import useBlocksStore from "@/store/use-blocks";
+import Block from "./block";
+import Draggable from "./draggable";
+import { User } from "lucide-react";
+import useZoomPanStore from "@/store/use-zoom-pan";
 
 interface CanvasProps {
     eventId: string;
 }
 const Canvas: React.FC<CanvasProps> = ({ eventId }) => {
+    // Nodes
     const { chairs } = useChairsStore();
+    const { blocks } = useBlocksStore()
+
     const canvasRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     
     // Pan and zoom state
-    const [pan, setPan] = useState({ x: 0, y: 0 });
-    const [zoom, setZoom] = useState(1);
+    const { zoom, pan, setZoom, setPan } = useZoomPanStore();
+    
     const [isPanning, setIsPanning] = useState(false);
     const [panStart, setPanStart] = useState({ x: 0, y: 0 });
 
@@ -54,7 +62,7 @@ const Canvas: React.FC<CanvasProps> = ({ eventId }) => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [isPanning, panStart]);
+    }, [isPanning, panStart, setPan]);
 
     // Handle zoom with mouse wheel
     useEffect(() => {
@@ -87,7 +95,7 @@ const Canvas: React.FC<CanvasProps> = ({ eventId }) => {
                 viewport.removeEventListener('wheel', handleWheel);
             };
         }
-    }, [zoom, pan]);
+    }, [zoom, pan, setPan, setZoom]);
 
     return (
         <div 
@@ -108,6 +116,10 @@ const Canvas: React.FC<CanvasProps> = ({ eventId }) => {
                     willChange: 'transform',
                 }}
             >
+                <Draggable x={100} y={100} id="draggable">
+                    <User size={50} />
+                </Draggable>
+
                 {chairs.map((chair) => (
                     <Chair
                         key={chair.id}
@@ -115,6 +127,21 @@ const Canvas: React.FC<CanvasProps> = ({ eventId }) => {
                         x={chair.x}
                         y={chair.y}
                         id={chair.id}
+                        zoom={zoom}
+                        pan={pan}
+                    />
+                ))}
+
+                {blocks.map((block) => (
+                    <Block 
+                        key={block.id}
+                        className="absolute"
+                        x={block.x}
+                        y={block.y}
+                        id={block.id}
+                        text={block.text}
+                        width={block.width}
+                        height={block.height}
                         zoom={zoom}
                         pan={pan}
                     />
