@@ -9,9 +9,10 @@ import {
 
 import { useRef, useState, useEffect } from "react";
 
-import { Armchair, User } from "lucide-react";
+import { Armchair, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, User } from "lucide-react";
 import { Input } from "../ui/input";
 import { twMerge } from "tailwind-merge";
+import useChairsStore from "@/store/use-chairs";
 
 interface ChairProps {
     className?: string;
@@ -27,10 +28,16 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
     const chairRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // The chairs store
+    const { setChairs } = useChairsStore()
+
     const handleMouseDown = (e: React.MouseEvent) => {
         if (isAssigning) {
             // Cancel assignment if clicking outside the input
-            if (inputRef.current && !inputRef.current.contains(e.target as Node)) {
+            if (
+                inputRef.current &&
+                !inputRef.current.contains(e.target as Node)
+            ) {
                 setIsAssigning(false);
             }
             return;
@@ -94,17 +101,17 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
     // Handle chair assignment
     const handleAssign = () => {
         setIsAssigning(true);
-    }
+    };
 
     const handleAssignSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
+        if (e.key === "Enter") {
             const value = e.currentTarget.value.trim();
             if (value) {
                 setAssignedName(value);
             }
             setIsAssigning(false);
         }
-    }
+    };
 
     const handleAssignBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const value = e.currentTarget.value.trim();
@@ -112,7 +119,7 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
             setAssignedName(value);
         }
         setIsAssigning(false);
-    }
+    };
 
     // Auto-focus input when assigning
     useEffect(() => {
@@ -124,7 +131,10 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
     // Handle clicks outside to deselect
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            if (chairRef.current && !chairRef.current.contains(e.target as Node)) {
+            if (
+                chairRef.current &&
+                !chairRef.current.contains(e.target as Node)
+            ) {
                 setIsSelected(false);
             }
         };
@@ -136,6 +146,51 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
             };
         }
     }, [isSelected]);
+
+    const addChair = (direction : 'right' | 'left' | 'up' | 'down') => {
+        const offset = 140; 
+
+        let x = 0;
+        let y = 0;
+
+        if (chairRef.current) {
+            switch(direction) {
+                case 'right':
+                    x = chairRef.current.offsetLeft + offset;
+                    y = chairRef.current.offsetTop;
+                    break;
+                case 'left':
+                    x = chairRef.current.offsetLeft - offset;
+                    y = chairRef.current.offsetTop;
+                    break;
+                case 'up':
+                    x = chairRef.current.offsetLeft;
+                    y = chairRef.current.offsetTop - offset;
+                    break;
+                case 'down':
+                    x = chairRef.current.offsetLeft;
+                    y = chairRef.current.offsetTop + offset;
+                    break;
+            };
+
+            setChairs((prev) => [
+                ...prev,
+                {
+                    id: `chair-${Date.now()}`,
+                    x: x,
+                    y: y,
+                    name: `Chair ${prev.length + 1}`,
+                    isOccupied: false,
+                },
+            ]);
+        }
+    }
+
+    // Prevent drag when clicking on interactive elements
+    const handleChevronClick = (e: React.MouseEvent, action: () => void) => {
+        e.stopPropagation();
+        action();
+    };
 
     return (
         <ContextMenu>
@@ -158,12 +213,14 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
                     onTouchStart={handleTouchStart}
                 >
                     {isAssigning ? (
-                        <Input 
+                        <Input
                             ref={inputRef}
                             placeholder="Enter name..."
                             onKeyDown={handleAssignSubmit}
                             onBlur={handleAssignBlur}
                             className="mb-2"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
                         />
                     ) : assignedName ? (
                         <div className="flex items-center gap-1 mb-2 text-sm font-medium">
@@ -172,12 +229,42 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
                         </div>
                     ) : null}
                     <Armchair size={100} />
+                    {isSelected && !isDragging && (
+                        <div className="absolute">
+                            <ChevronRight
+                                className="absolute right-[-6rem] top-[2rem] bg-blue-600 rounded-full text-white cursor-pointer"
+                                size={30}
+                                onClick={(e) => handleChevronClick(e, () => addChair('right'))}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onTouchStart={(e) => e.stopPropagation()}
+                            />
+                            <ChevronLeft 
+                                className="absolute left-[-6rem] top-[2rem] bg-blue-600 rounded-full text-white cursor-pointer"
+                                size={30}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onTouchStart={(e) => e.stopPropagation()}
+                                onClick={(e) => handleChevronClick(e, () => addChair('left'))}
+                            />
+                            <ChevronUp 
+                                className="absolute top-[-3rem] right-[-1rem] bg-blue-600 rounded-full text-white cursor-pointer"
+                                size={30}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onTouchStart={(e) => e.stopPropagation()}
+                                onClick={(e) => handleChevronClick(e, () => addChair('up'))}
+                            />
+                            <ChevronDown 
+                                className="absolute bottom-[-9rem] right-[-1rem] bg-blue-600 rounded-full text-white cursor-pointer"
+                                size={30}
+                                onMouseDown={(e) => e.stopPropagation()}
+                                onTouchStart={(e) => e.stopPropagation()}
+                                onClick={(e) => handleChevronClick(e, () => addChair('down'))}
+                            />
+                        </div>
+                    )}
                 </div>
             </ContextMenuTrigger>
             <ContextMenuContent>
-                <ContextMenuItem 
-                    onSelect={handleAssign}
-                >
+                <ContextMenuItem onSelect={handleAssign}>
                     Assign
                 </ContextMenuItem>
             </ContextMenuContent>
