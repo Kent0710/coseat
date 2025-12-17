@@ -1,9 +1,8 @@
 import { BlockType } from "@/lib/types";
 import Draggable from "./draggable";
-import { Square } from "lucide-react";
 
 interface BlockProps extends BlockType {
-       zoom: number;
+    zoom: number;
     pan: { x: number; y: number };
     className? : string;
 }
@@ -12,14 +11,31 @@ const Block : React.FC<BlockProps> = ({
     id,
     x,
     y,
+    width,
+    height,
 }) => {
+
+
     return (
         <Draggable
             x={x}
             y={y}
             id={id}
         >
-            <Square size={50} />
+            <div 
+                style={{
+                    width: width,
+                    height: height,
+                    backgroundColor: "#f0f0f0",
+                    border: "2px solid #ccc",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
+            </div>
         </Draggable>
 
     )

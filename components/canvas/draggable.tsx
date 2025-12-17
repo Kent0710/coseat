@@ -109,6 +109,24 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id }) => {
  
     }, [dragOffset.x, dragOffset.y, isDragging, pan.x, pan.y, zoom]);
 
+    useEffect(() => {
+
+        // Handle clicks outside to deselect
+        const handleClickOutside = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) {
+                setIsSelected(false);
+            }
+        };
+
+        if (isSelected) {
+            document.addEventListener("mousedown", handleClickOutside);
+            return () => {
+                document.removeEventListener("mousedown", handleClickOutside);
+            }
+        }
+
+    }, [isSelected])
+
     return (
         <div
             id={id}
