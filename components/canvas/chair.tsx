@@ -19,18 +19,22 @@ interface ChairProps {
     x: number;
     y: number;
     id: string;
+    zoom: number;
+    pan: { x: number; y: number };
 }
-const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
+const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
     const [isAssigning, setIsAssigning] = useState(false);
     const [isSelected, setIsSelected] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [assignedName, setAssignedName] = useState("");
+    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+    const [currentPosition, setCurrentPosition] = useState({ x, y });
     const chairRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // The chairs store
     const { setChairs } = useChairsStore()
-
+    
     const handleMouseDown = (e: React.MouseEvent) => {
         if (isAssigning) {
             // Cancel assignment if clicking outside the input
@@ -43,8 +47,18 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
             return;
         }
         e.preventDefault();
+        e.stopPropagation();
         setIsSelected(true);
         setIsDragging(true);
+        
+        // Calculate offset in canvas coordinates
+        const canvasMouseX = (e.clientX - pan.x) / zoom;
+        const canvasMouseY = (e.clientY - pan.y) / zoom;
+        
+        setDragOffset({
+            x: canvasMouseX - currentPosition.x,
+            y: canvasMouseY - currentPosition.y,
+        });
     };
 
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -56,33 +70,64 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
             return;
         }
         e.preventDefault();
+        e.stopPropagation();
         setIsDragging(true);
+        
+        // Calculate offset in canvas coordinates for touch
+        if (e.touches.length > 0) {
+            const touch = e.touches[0];
+            const canvasMouseX = (touch.clientX - pan.x) / zoom;
+            const canvasMouseY = (touch.clientY - pan.y) / zoom;
+            
+            setDragOffset({
+                x: canvasMouseX - currentPosition.x,
+                y: canvasMouseY - currentPosition.y,
+            });
+        }
     };
 
     useEffect(() => {
         if (!isDragging) return;
 
         const handleMouseMove = (e: MouseEvent) => {
-            if (chairRef.current) {
-                const newX = e.clientX - chairRef.current.offsetWidth / 2;
-                const newY = e.clientY - chairRef.current.offsetHeight / 2;
-                chairRef.current.style.left = `${newX}px`;
-                chairRef.current.style.top = `${newY}px`;
-            }
+            // Transform screen coordinates to canvas coordinates
+            const canvasMouseX = (e.clientX - pan.x) / zoom;
+            const canvasMouseY = (e.clientY - pan.y) / zoom;
+            
+            // Subtract the offset to get chair position
+            const canvasX = canvasMouseX - dragOffset.x;
+            const canvasY = canvasMouseY - dragOffset.y;
+            
+            // Update local position state for smooth rendering
+            setCurrentPosition({ x: canvasX, y: canvasY });
         };
 
         const handleTouchMove = (e: TouchEvent) => {
-            if (chairRef.current && e.touches.length > 0) {
+            if (e.touches.length > 0) {
                 const touch = e.touches[0];
-                const newX = touch.clientX - chairRef.current.offsetWidth / 2;
-                const newY = touch.clientY - chairRef.current.offsetHeight / 2;
-                chairRef.current.style.left = `${newX}px`;
-                chairRef.current.style.top = `${newY}px`;
+                // Transform screen coordinates to canvas coordinates
+                const canvasMouseX = (touch.clientX - pan.x) / zoom;
+                const canvasMouseY = (touch.clientY - pan.y) / zoom;
+                
+                // Subtract the offset to get chair position
+                const canvasX = canvasMouseX - dragOffset.x;
+                const canvasY = canvasMouseY - dragOffset.y;
+                
+                // Update local position state for smooth rendering
+                setCurrentPosition({ x: canvasX, y: canvasY });
             }
         };
 
         const handleEnd = () => {
             setIsDragging(false);
+            // Update the store with final position when drag ends
+            setChairs((prev) =>
+                prev.map((chair) =>
+                    chair.id === id
+                        ? { ...chair, x: currentPosition.x, y: currentPosition.y }
+                        : chair
+                )
+            );
         };
 
         document.addEventListener("mousemove", handleMouseMove);
@@ -96,7 +141,7 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
             document.removeEventListener("touchmove", handleTouchMove);
             document.removeEventListener("touchend", handleEnd);
         };
-    }, [isDragging]);
+    }, [isDragging, zoom, pan, dragOffset, id, setChairs, currentPosition]);
 
     // Handle chair assignment
     const handleAssign = () => {
@@ -200,8 +245,8 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id }) => {
                     ref={chairRef}
                     className={twMerge(`flex flex-col items-center`, className)}
                     style={{
-                        top: y,
-                        left: x,
+                        top: currentPosition.y,
+                        left: currentPosition.x,
                         position: "absolute",
                         cursor: isDragging ? "grabbing" : "grab",
                         userSelect: "none",
