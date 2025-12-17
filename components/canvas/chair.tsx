@@ -13,6 +13,7 @@ import { Armchair, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, User } fro
 import { Input } from "../ui/input";
 import { twMerge } from "tailwind-merge";
 import useChairsStore from "@/store/use-chairs";
+import { toast } from "sonner";
 
 interface ChairProps {
     className?: string;
@@ -237,6 +238,15 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
         action();
     };
 
+    // Handle chair deletion
+    const handleDelete = (chairId: string) => {
+        if (!chairId) {
+            toast.error("Chair does not exist!")
+        }
+
+        setChairs((prev) => prev.filter((chair) => chair.id !== chairId));
+    }
+
     return (
         <ContextMenu>
             <ContextMenuTrigger>
@@ -311,6 +321,9 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
             <ContextMenuContent>
                 <ContextMenuItem onSelect={handleAssign}>
                     Assign
+                </ContextMenuItem>
+                <ContextMenuItem onSelect={() => handleDelete(id)}>
+                    Delete
                 </ContextMenuItem>
             </ContextMenuContent>
         </ContextMenu>
