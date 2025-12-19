@@ -38,7 +38,6 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id }) => {
     };
 
     const handleTouchStart = (e: React.TouchEvent) => {
-        e.preventDefault();
         e.stopPropagation();
 
         setIsDragging(true);
