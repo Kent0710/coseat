@@ -83,7 +83,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
 
                 setOnEdge((prev) => ({ ...prev, top: false }));
             };
-        };
+        }
 
         // left edge logic
         // rect.width increases, x decreases
@@ -121,7 +121,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                 window.removeEventListener("mouseup", handleMouseUp);
                 setOnEdge((prev) => ({ ...prev, left: false }));
             };
-        };
+        }
 
         // right edge logic
         // rect.width increases
@@ -157,10 +157,40 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                 window.removeEventListener("mouseup", handleMouseUp);
                 setOnEdge((prev) => ({ ...prev, right: false }));
             };
-        };
+        }
 
-        
-
+        // bottom edge logic
+        // rect.height increases
+        if (onEdge.bottom) {
+            const handleMouseMove = (e: MouseEvent) => {
+                setBlocks((prevBlocks) =>
+                    prevBlocks.map((block) => {
+                        if (block.id === id) {
+                            const deltaY = e.movementY;
+                            const newHeight = block.height + deltaY;
+                            return {
+                                ...block,
+                                height: newHeight > 20 ? newHeight : 20,
+                            };
+                        }
+                        return block;
+                    })
+                );
+            };
+            // handle mouse up
+            const handleMouseUp = () => {
+                setOnEdge((prev) => ({ ...prev, bottom: false }));
+            };
+            // add event listener
+            window.addEventListener("mousemove", handleMouseMove);
+            window.addEventListener("mouseup", handleMouseUp, { once: true });
+            // cleanup
+            return () => {
+                window.removeEventListener("mousemove", handleMouseMove);
+                window.removeEventListener("mouseup", handleMouseUp);
+                setOnEdge((prev) => ({ ...prev, bottom: false }));
+            };
+        }
     }, [id, onEdge, setBlocks]);
 
     return (
