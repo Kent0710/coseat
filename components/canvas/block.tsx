@@ -65,6 +65,14 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                         return block;
                     })
                 );
+
+                // get the block from the dom
+                const block = document.getElementById(id);
+                // adjust the y position of the block visually
+                if (block) {
+                    const currentTop = parseFloat(block.style.top || "0");
+                    block.style.top = `${currentTop + e.movementY}px`;
+                }
             };
 
             // handle mouse up
