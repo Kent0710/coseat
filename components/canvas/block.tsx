@@ -14,6 +14,7 @@ interface BlockProps extends BlockType {
 
 const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
     const blockRef = useRef<HTMLDivElement>(null);
+    
     const { setBlocks } = useBlocksStore();
 
     // state for handling over (hover) edge states
@@ -93,12 +94,13 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
         // rect.height increases, y decreases
         if (onEdge.top) {
             const handleMouseMove = (e: MouseEvent) => {
+                let newY = 0;
                 setBlocks((prevBlocks) =>
                     prevBlocks.map((block) => {
                         if (block.id === id) {
                             const deltaY = e.movementY;
                             const newHeight = block.height - deltaY;
-                            const newY = block.y + deltaY;
+                            newY = block.y + deltaY;
                             return {
                                 ...block,
                                 height: newHeight > 20 ? newHeight : 20,
