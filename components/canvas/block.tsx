@@ -14,7 +14,7 @@ interface BlockProps extends BlockType {
 
 const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
     const blockRef = useRef<HTMLDivElement>(null);
-    
+
     const { setBlocks } = useBlocksStore();
 
     // state for handling over (hover) edge states
@@ -24,7 +24,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
         bottom: false,
         left: false,
     });
-        
+
     // state for handling down edge (active) states
     const [onEdge, setOnEdge] = useState({
         top: false,
@@ -61,33 +61,66 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
         const offsetX = e.clientX - rect.left;
         const offsetY = e.clientY - rect.top;
         const edgeThreshold = 10; // pixels
-        
+
         if (offsetY < edgeThreshold) {
-            setIsEdgeOver({ top: true, right: false, bottom: false, left: false });
+            setIsEdgeOver({
+                top: true,
+                right: false,
+                bottom: false,
+                left: false,
+            });
         } else if (offsetY > rect.height - edgeThreshold) {
-            setIsEdgeOver({ top: false, right: false, bottom: true, left: false });
+            setIsEdgeOver({
+                top: false,
+                right: false,
+                bottom: true,
+                left: false,
+            });
         } else if (offsetX < edgeThreshold) {
-            setIsEdgeOver({ top: false, right: false, bottom: false, left: true });
+            setIsEdgeOver({
+                top: false,
+                right: false,
+                bottom: false,
+                left: true,
+            });
         } else if (offsetX > rect.width - edgeThreshold) {
-            setIsEdgeOver({ top: false, right: true, bottom: false, left: false });
+            setIsEdgeOver({
+                top: false,
+                right: true,
+                bottom: false,
+                left: false,
+            });
         } else {
             // inside the box
-            setIsEdgeOver({ top: false, right: false, bottom: false, left: false });
+            setIsEdgeOver({
+                top: false,
+                right: false,
+                bottom: false,
+                left: false,
+            });
         }
-    }
+    };
 
     // useEffect
     useEffect(() => {
-        if (isEdgeOver.top || isEdgeOver.right || isEdgeOver.bottom || isEdgeOver.left) {
+        if (
+            isEdgeOver.top ||
+            isEdgeOver.right ||
+            isEdgeOver.bottom ||
+            isEdgeOver.left
+        ) {
             if (blockRef.current) {
-                blockRef.current.style.cursor = isEdgeOver.top || isEdgeOver.bottom ? "ns-resize" : "ew-resize";
+                blockRef.current.style.cursor =
+                    isEdgeOver.top || isEdgeOver.bottom
+                        ? "ns-resize"
+                        : "ew-resize";
             }
         } else {
             if (blockRef.current) {
                 blockRef.current.style.cursor = "grab";
             }
         }
-    }, [isEdgeOver.bottom, isEdgeOver.left, isEdgeOver.right, isEdgeOver.top])
+    }, [isEdgeOver.bottom, isEdgeOver.left, isEdgeOver.right, isEdgeOver.top]);
 
     useEffect(() => {
         // top edge logic
@@ -255,6 +288,27 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
         }
     }, [id, onEdge, setBlocks]);
 
+    // double click
+    // double clicking allows for text editing inside the block
+    const handleDoubleClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (!blockRef.current) return;
+
+        const el = blockRef.current;
+        el.contentEditable = "true";
+        el.focus();
+
+        // Move caret to the end
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false); // false = end
+
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+    };
+
     return (
         <Draggable
             x={x}
@@ -270,7 +324,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                     height: height,
                     backgroundColor: "#f0f0f0",
                     border: "2px solid #ccc",
-                    borderRadius: "8px",
+                    borderRadius: "24px",
                     boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                     display: "flex",
                     alignItems: "center",
@@ -278,6 +332,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                 }}
                 onMouseDown={handleEdgeDown}
                 onMouseMove={handleEdgeOver}
+                onDoubleClick={handleDoubleClick}
                 ref={blockRef}
             ></div>
         </Draggable>
