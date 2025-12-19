@@ -83,7 +83,46 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
 
                 setOnEdge((prev) => ({ ...prev, top: false }));
             };
-        }
+        };
+
+        // left edge logic
+        // rect.width increases, x decreases
+        if (onEdge.left) {
+            const handleMouseMove = (e: MouseEvent) => {
+                setBlocks((prevBlocks) =>
+                    prevBlocks.map((block) => {
+                        if (block.id === id) {
+                            const deltaX = e.movementX;
+                            const newWidth = block.width - deltaX;
+                            const newX = block.x + deltaX;
+                            return {
+                                ...block,
+                                width: newWidth > 20 ? newWidth : 20,
+                                x: newX,
+                            };
+                        }
+                        return block;
+                    })
+                );
+            };
+
+            // handle mouse up
+            const handleMouseUp = () => {
+                setOnEdge((prev) => ({ ...prev, left: false }));
+            };
+
+            // add event listener
+            window.addEventListener("mousemove", handleMouseMove);
+            window.addEventListener("mouseup", handleMouseUp, { once: true });
+
+            // cleanup
+            return () => {
+                window.removeEventListener("mousemove", handleMouseMove);
+                window.removeEventListener("mouseup", handleMouseUp);
+                setOnEdge((prev) => ({ ...prev, left: false }));
+            };
+        };
+
     }, [id, onEdge, setBlocks]);
 
     return (
