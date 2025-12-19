@@ -123,6 +123,44 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
             };
         };
 
+        // right edge logic
+        // rect.width increases
+        if (onEdge.right) {
+            const handleMouseMove = (e: MouseEvent) => {
+                setBlocks((prevBlocks) =>
+                    prevBlocks.map((block) => {
+                        if (block.id === id) {
+                            const deltaX = e.movementX;
+                            const newWidth = block.width + deltaX;
+                            return {
+                                ...block,
+                                width: newWidth > 20 ? newWidth : 20,
+                            };
+                        }
+                        return block;
+                    })
+                );
+            };
+
+            // handle mouse up
+            const handleMouseUp = () => {
+                setOnEdge((prev) => ({ ...prev, right: false }));
+            };
+
+            // add event listener
+            window.addEventListener("mousemove", handleMouseMove);
+            window.addEventListener("mouseup", handleMouseUp, { once: true });
+
+            // cleanup
+            return () => {
+                window.removeEventListener("mousemove", handleMouseMove);
+                window.removeEventListener("mouseup", handleMouseUp);
+                setOnEdge((prev) => ({ ...prev, right: false }));
+            };
+        };
+
+        
+
     }, [id, onEdge, setBlocks]);
 
     return (
@@ -130,6 +168,9 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
             x={x}
             y={y}
             id={id}
+            disableDrag={
+                onEdge.top || onEdge.right || onEdge.bottom || onEdge.left
+            }
         >
             <div
                 style={{

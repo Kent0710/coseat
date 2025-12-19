@@ -6,8 +6,9 @@ import React, { useRef, useState, useEffect } from "react";
 
 interface DraggableProps extends DraggableType {
     children: React.ReactNode;
+    disableDrag? : boolean;
 }
-const Draggable: React.FC<DraggableProps> = ({ children, x, y, id }) => {
+const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag }) => {
     // zoom and pan offsets
     const { zoom, pan } = useZoomPanStore();
 
@@ -21,6 +22,8 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id }) => {
     const ref = useRef<HTMLDivElement>(null);
 
     const handleMouseDown = (e: React.MouseEvent) => {
+        if (disableDrag) return;
+
         e.preventDefault();
         e.stopPropagation();
 
@@ -61,6 +64,11 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id }) => {
         if (!isDragging) return; 
 
         const handleMouseMove = (e: MouseEvent) => {
+            if (disableDrag) {
+                setIsDragging(false);
+                return;
+            }
+
             // Transform screen coordinates to canvas coordinates
             const canvasMouseX = (e.clientX - pan.x) / zoom;
             const canvasMouseY = (e.clientY - pan.y) / zoom;
@@ -106,7 +114,7 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id }) => {
             document.removeEventListener("touchend", handleEnd);
         }
  
-    }, [dragOffset.x, dragOffset.y, isDragging, pan.x, pan.y, zoom]);
+    }, [dragOffset.x, dragOffset.y, isDragging, pan.x, pan.y, zoom, disableDrag]);
 
     useEffect(() => {
 
