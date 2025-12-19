@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 import { BlockType } from "@/lib/types";
 import Draggable from "./draggable";
@@ -13,8 +13,18 @@ interface BlockProps extends BlockType {
 }
 
 const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
+    const blockRef = useRef<HTMLDivElement>(null);
     const { setBlocks } = useBlocksStore();
 
+    // state for handling over (hover) edge states
+    const [isEdgeOver, setIsEdgeOver] = useState({
+        top: false,
+        right: false,
+        bottom: false,
+        left: false,
+    });
+        
+    // state for handling down edge (active) states
     const [onEdge, setOnEdge] = useState({
         top: false,
         right: false,
@@ -44,6 +54,39 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
             setOnEdge({ top: false, right: false, bottom: false, left: false });
         }
     };
+
+    const handleEdgeOver = (e: React.MouseEvent) => {
+        const rect = (e.target as HTMLDivElement).getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+        const edgeThreshold = 10; // pixels
+        
+        if (offsetY < edgeThreshold) {
+            setIsEdgeOver({ top: true, right: false, bottom: false, left: false });
+        } else if (offsetY > rect.height - edgeThreshold) {
+            setIsEdgeOver({ top: false, right: false, bottom: true, left: false });
+        } else if (offsetX < edgeThreshold) {
+            setIsEdgeOver({ top: false, right: false, bottom: false, left: true });
+        } else if (offsetX > rect.width - edgeThreshold) {
+            setIsEdgeOver({ top: false, right: true, bottom: false, left: false });
+        } else {
+            // inside the box
+            setIsEdgeOver({ top: false, right: false, bottom: false, left: false });
+        }
+    }
+
+    // useEffect
+    useEffect(() => {
+        if (isEdgeOver.top || isEdgeOver.right || isEdgeOver.bottom || isEdgeOver.left) {
+            if (blockRef.current) {
+                blockRef.current.style.cursor = isEdgeOver.top || isEdgeOver.bottom ? "ns-resize" : "ew-resize";
+            }
+        } else {
+            if (blockRef.current) {
+                blockRef.current.style.cursor = "grab";
+            }
+        }
+    }, [isEdgeOver.bottom, isEdgeOver.left, isEdgeOver.right, isEdgeOver.top])
 
     useEffect(() => {
         // top edge logic
@@ -232,6 +275,8 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                     justifyContent: "center",
                 }}
                 onMouseDown={handleEdgeDown}
+                onMouseMove={handleEdgeOver}
+                ref={blockRef}
             ></div>
         </Draggable>
     );
