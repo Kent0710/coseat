@@ -112,6 +112,15 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                         return block;
                     })
                 );
+
+                // get the block from the dom
+                const block = document.getElementById(id);
+
+                // adjust the x position of the block visually
+                if (block) {
+                    const currentLeft = parseFloat(block.style.left || "0");
+                    block.style.left = `${currentLeft + e.movementX}px`;
+                }
             };
 
             // handle mouse up
