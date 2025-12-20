@@ -30,6 +30,9 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
     const [assignedName, setAssignedName] = useState("");
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
     const [currentPosition, setCurrentPosition] = useState({ x, y });
+    const [lastDirection, setLastDirection] = useState<'right' | 'left' | 'up' | 'down' | null>(null);
+    const [lastAddedPosition, setLastAddedPosition] = useState({ x: 0, y: 0 });
+
     const chairRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -182,6 +185,9 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
                 !chairRef.current.contains(e.target as Node)
             ) {
                 setIsSelected(false);
+                // Reset the offset tracking when deselecting
+                setLastDirection(null);
+                setLastAddedPosition({ x: 0, y: 0 });
             }
         };
 
@@ -193,6 +199,7 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
         }
     }, [isSelected]);
 
+
     const addChair = (direction : 'right' | 'left' | 'up' | 'down') => {
         const offset = 140; 
 
@@ -200,24 +207,37 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
         let y = 0;
 
         if (chairRef.current) {
+            // If clicking the same direction consecutively, use last added position
+            // Otherwise, use the original chair's position
+            const baseX = (lastDirection === direction && lastAddedPosition.x !== 0) 
+                ? lastAddedPosition.x 
+                : chairRef.current.offsetLeft;
+            const baseY = (lastDirection === direction && lastAddedPosition.y !== 0) 
+                ? lastAddedPosition.y 
+                : chairRef.current.offsetTop;
+
             switch(direction) {
                 case 'right':
-                    x = chairRef.current.offsetLeft + offset;
-                    y = chairRef.current.offsetTop;
+                    x = baseX + offset;
+                    y = baseY;
                     break;
                 case 'left':
-                    x = chairRef.current.offsetLeft - offset;
-                    y = chairRef.current.offsetTop;
+                    x = baseX - offset;
+                    y = baseY;
                     break;
                 case 'up':
-                    x = chairRef.current.offsetLeft;
-                    y = chairRef.current.offsetTop - offset;
+                    x = baseX;
+                    y = baseY - offset;
                     break;
                 case 'down':
-                    x = chairRef.current.offsetLeft;
-                    y = chairRef.current.offsetTop + offset;
+                    x = baseX;
+                    y = baseY + offset;
                     break;
             };
+
+            // Update last direction and position
+            setLastDirection(direction);
+            setLastAddedPosition({ x, y });
 
             setChairs((prev) => [
                 ...prev,
