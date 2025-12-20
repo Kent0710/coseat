@@ -6,6 +6,13 @@ import { BlockType } from "@/lib/types";
 import Draggable from "./draggable";
 import useBlocksStore from "@/store/use-blocks";
 
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+
 interface BlockProps extends BlockType {
     zoom: number;
     pan: { x: number; y: number };
@@ -309,6 +316,11 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
         selection?.addRange(range);
     };
 
+    // context menu logic
+    const handleDelete = () => {
+        setBlocks((prevBlocks) => prevBlocks.filter((block) => block.id !== id));
+    }
+
     return (
         <Draggable
             x={x}
@@ -318,23 +330,34 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                 onEdge.top || onEdge.right || onEdge.bottom || onEdge.left
             }
         >
-            <div
-                style={{
-                    width: width,
-                    height: height,
-                    backgroundColor: "#f0f0f0",
-                    border: "2px solid #ccc",
-                    borderRadius: "24px",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-                onMouseDown={handleEdgeDown}
-                onMouseMove={handleEdgeOver}
-                onDoubleClick={handleDoubleClick}
-                ref={blockRef}
-            ></div>
+            <ContextMenu>
+                <ContextMenuTrigger>
+                    <div
+                        style={{
+                            width: width,
+                            height: height,
+                            backgroundColor: "#f0f0f0",
+                            border: "2px solid #ccc",
+                            borderRadius: "24px",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                        onMouseDown={handleEdgeDown}
+                        onMouseMove={handleEdgeOver}
+                        onDoubleClick={handleDoubleClick}
+                        ref={blockRef}
+                    ></div>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                    <ContextMenuItem
+                        onSelect={handleDelete}
+                    >
+                        Delete
+                    </ContextMenuItem>
+                </ContextMenuContent>
+            </ContextMenu>
         </Draggable>
     );
 };
