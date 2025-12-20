@@ -116,10 +116,6 @@ const Canvas: React.FC<CanvasProps> = ({ eventId }) => {
                     willChange: 'transform',
                 }}
             >
-                <Draggable x={100} y={100} id="draggable">
-                    <User size={50} />
-                </Draggable>
-
                 {chairs.map((chair) => (
                     <Chair
                         key={chair.id}

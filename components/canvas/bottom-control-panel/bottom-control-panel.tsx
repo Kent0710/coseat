@@ -1,6 +1,8 @@
-import ArmchairControlIcon from "./armchair-control-icon";
+'use client'
+
 import ResetControlIcon from "./reset-control-icon";
 import AddBlockControl from "./add-block-control";
+import AddChairControl from "./add-chair-control";
 
 interface BottomControlPanelProps {
     pan: { x: number; y: number };
@@ -18,12 +20,9 @@ const BottomControlPanel: React.FC<BottomControlPanelProps> = ({ pan, zoom }) =>
         >
             {/* Actual Container for the Controls */}
             <div className="flex items-center gap-2">
-                <ArmchairControlIcon pan={pan} zoom={zoom} />
+                <AddChairControl pan={pan} zoom={zoom} />
                 <AddBlockControl pan={pan} zoom={zoom} />
                 <ResetControlIcon />
-                {/* <ControlIcon icon={MousePointer2} />
-                <ControlIcon icon={Armchair} />
-                <ControlIcon icon={Trash2} /> */}
             </div>
         </div>
     );
