@@ -49,7 +49,7 @@ const AddChairControl: React.FC<AddChairControlProps> = ({ pan, zoom }) => {
     }, [handleClick])
 
     return (
-        <ControlIcon icon={Armchair} onClick={handleClick} />
+        <ControlIcon icon={Armchair} onClick={handleClick} keyShortcut="c" />
     )
 };
 

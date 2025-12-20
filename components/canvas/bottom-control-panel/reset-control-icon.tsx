@@ -29,7 +29,7 @@ const ResetControlIcon = () => {
         };
     }, [handleClick])
 
-    return <ControlIcon icon={BrushCleaning} onClick={handleClick} />;
+    return <ControlIcon icon={BrushCleaning} onClick={handleClick} keyShortcut="r" />;
 };
 
 export default ResetControlIcon;

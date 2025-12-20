@@ -50,7 +50,7 @@ const AddBlockControl : React.FC<AddBlockControlProps> = ({pan, zoom}) => {
     }, [handleClick])
     
     return (
-       <ControlIcon icon={Square} onClick={handleClick} />
+       <ControlIcon icon={Square} onClick={handleClick} keyShortcut="b" />
     )
 };
 
