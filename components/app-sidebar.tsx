@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Input } from "./ui/input";
 import Link from "next/link";
+import DropdownAccountSidebarView from "./account/dropdown-account-sidebar-view";
 
 // Menu items.
 const items = [
@@ -39,6 +40,7 @@ const AppSidebar = () => {
             <SidebarContent>
                 <SidebarGroup className="space-y-2">
                     <SidebarGroupLabel>coseat</SidebarGroupLabel>
+                    <DropdownAccountSidebarView />
                     <Input placeholder="Search event..." />
                     <SidebarGroupContent>
                         <SidebarMenu className="space-y-2">
