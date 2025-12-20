@@ -300,26 +300,34 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
     const handleDoubleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
 
+        handleAddLabel();
+    };
+
+    const handleAddLabel = () => {
         if (!blockRef.current) return;
 
         const el = blockRef.current;
-        el.contentEditable = "true";
-        el.focus();
 
-        // Move caret to the end
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        range.collapse(false); // false = end
+        requestAnimationFrame(() => {
+            el.contentEditable = "true";
+            el.focus();
 
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(range);
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            range.collapse(false);
+
+            const selection = window.getSelection();
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+        });
     };
 
     // context menu logic
     const handleDelete = () => {
-        setBlocks((prevBlocks) => prevBlocks.filter((block) => block.id !== id));
-    }
+        setBlocks((prevBlocks) =>
+            prevBlocks.filter((block) => block.id !== id)
+        );
+    };
 
     return (
         <Draggable
@@ -351,9 +359,10 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                     ></div>
                 </ContextMenuTrigger>
                 <ContextMenuContent>
-                    <ContextMenuItem
-                        onSelect={handleDelete}
-                    >
+                    <ContextMenuItem onSelect={handleAddLabel}>
+                        Add label
+                    </ContextMenuItem>
+                    <ContextMenuItem onSelect={handleDelete}>
                         Delete
                     </ContextMenuItem>
                 </ContextMenuContent>
