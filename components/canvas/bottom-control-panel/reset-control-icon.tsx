@@ -7,8 +7,8 @@ import useBlocksStore from "@/store/use-blocks";
 import { useCallback, useEffect } from "react";
 
 const ResetControlIcon = () => {
-    const { setChairs } = useChairsStore();
-    const { setBlocks } = useBlocksStore()
+    const { chairs, setChairs } = useChairsStore();
+    const { blocks, setBlocks } = useBlocksStore()
 
     const handleClick = useCallback(() => {
         setChairs([]);
@@ -18,6 +18,8 @@ const ResetControlIcon = () => {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "r" || e.key === "R") {
+                if (chairs.length === 0 && blocks.length === 0) return;
+
                 handleClick();
             }
         };
@@ -27,7 +29,7 @@ const ResetControlIcon = () => {
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [handleClick])
+    }, [blocks.length, chairs.length, handleClick])
 
     return <ControlIcon icon={BrushCleaning} onClick={handleClick} keyShortcut="r" />;
 };
