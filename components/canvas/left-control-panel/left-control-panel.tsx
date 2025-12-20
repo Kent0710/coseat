@@ -48,7 +48,7 @@ const LeftControlPanel = () => {
     ];
 
     return (
-        <div className="bg-white border shadow-sm rounded-2xl w-[20rem] p-4">
+        <div className="bg-white border shadow-sm rounded-2xl w-[20rem] p-4 z-50 absolute top-4 left-4">
             <section className="flex items-center justify-between">
                 <DropdownMenu
                     open={open}

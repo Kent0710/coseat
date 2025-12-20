@@ -9,8 +9,6 @@ import useChairsStore from "@/store/use-chairs";
 import Chair from "./chair";
 import useBlocksStore from "@/store/use-blocks";
 import Block from "./block";
-import Draggable from "./draggable";
-import { User } from "lucide-react";
 import useZoomPanStore from "@/store/use-zoom-pan";
 
 interface CanvasProps {
@@ -104,8 +102,21 @@ const Canvas: React.FC<CanvasProps> = ({ eventId }) => {
             onMouseDown={handleCanvasMouseDown}
             style={{ cursor: isPanning ? 'grabbing' : 'default' }}
         >
+
             <LeftControlPanel />
             <BottomControlPanel pan={pan} zoom={zoom} />
+
+            {/* Fixed grid background */}
+            <div 
+                className="absolute inset-4 pointer-events-none"
+                style={{
+                    backgroundImage: `
+                        linear-gradient(to right, #e5e5e5 1px, transparent 1px),
+                        linear-gradient(to bottom, #e5e5e5 1px, transparent 1px)
+                    `,
+                    backgroundSize: '20px 20px',
+                }}
+            />
 
             <div
                 ref={viewportRef}
