@@ -5,18 +5,16 @@ import { redirect } from "next/navigation";
 import BottomControlPanel from "@/components/canvas/bottom-control-panel/bottom-control-panel";
 import LeftControlPanel from "@/components/canvas/left-control-panel/left-control-panel";
 import { useEffect, useRef, useState } from "react";
-import useChairsStore from "@/store/use-chairs";
-import Chair from "./chair";
 import useBlocksStore from "@/store/use-blocks";
 import Block from "./block";
 import useZoomPanStore from "@/store/use-zoom-pan";
+import RenderChairs from "./render-chairs";
 
 interface CanvasProps {
     eventId: string;
 }
 const Canvas: React.FC<CanvasProps> = ({ eventId }) => {
     // Nodes
-    const { chairs } = useChairsStore();
     const { blocks } = useBlocksStore()
 
     const canvasRef = useRef<HTMLDivElement>(null);
@@ -127,17 +125,7 @@ const Canvas: React.FC<CanvasProps> = ({ eventId }) => {
                     willChange: 'transform',
                 }}
             >
-                {chairs.map((chair) => (
-                    <Chair
-                        key={chair.id}
-                        className="absolute"
-                        x={chair.x}
-                        y={chair.y}
-                        id={chair.id}
-                        zoom={zoom}
-                        pan={pan}
-                    />
-                ))}
+              <RenderChairs />
 
                 {blocks.map((block) => (
                     <Block 

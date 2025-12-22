@@ -33,3 +33,7 @@ export function formatEventDate(
         .replace(/,/g, "")
         .replace(/\s(?=\d{1,2}:\d{2})/, " | ");
 }
+
+export const getEventIdOnParams = (pathname: string) => {
+    return pathname.split("/")[2];
+}
