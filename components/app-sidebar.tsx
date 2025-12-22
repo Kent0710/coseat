@@ -1,4 +1,6 @@
-import { Calendar, Home, Inbox, Settings } from "lucide-react";
+"use client";
+
+import { Calendar, Home, Inbox, Loader2, Settings } from "lucide-react";
 
 import {
     Sidebar,
@@ -12,35 +14,96 @@ import {
 } from "@/components/ui/sidebar";
 import { Input } from "./ui/input";
 import Link from "next/link";
-import DropdownAccountSidebarView from "./account/dropdown-account-sidebar-view";
 
-// Menu items.
-const items = [
-    {
-        title: "Home",
-        url: "/home",
-        icon: Home,
-    },
-    {
-        title: "Events",
-        url: "/events",
-        icon: Calendar,
-    },
-    { title: "Inbox", url: "/inbox", icon: Inbox },
-    {
-        title: "Settings",
-        url: "/settings",
-        icon: Settings,
-    },
-];
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import DropdownMenuItemLogout from "./account/dropdown-menu-item-logout";
+import { User } from "lucide-react";
+
+import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { getUsernameAction } from "@/actions/auth/get-username";
 
 const AppSidebar = () => {
+    const [mounted, setMounted] = useState(false);
+    const [name, setName] = useState<string | null>(null);
+
+    const pathname = usePathname();
+
+    const items = useMemo(
+        () => [
+            {
+                title: "Home",
+                url: "/home",
+                icon: Home,
+                active: pathname === "/home",
+            },
+            {
+                title: "Events",
+                url: "/events",
+                icon: Calendar,
+                active: pathname.startsWith("/events"),
+            },
+            {
+                title: "Inbox",
+                url: "/inbox",
+                icon: Inbox,
+                active: pathname === "/inbox",
+            },
+            {
+                title: "Settings",
+                url: "/settings",
+                icon: Settings,
+                active: pathname === "/settings",
+            },
+        ],
+        [pathname]
+    );
+
+    useEffect(() => {
+        const getUsername = async () => {
+            setMounted(true);
+
+            const username = await getUsernameAction();
+            if (username) {
+                setName(username);
+            }
+        };
+
+        getUsername();
+
+        return () => setMounted(false);
+    }, []);
+ 
     return (
         <Sidebar>
             <SidebarContent>
                 <SidebarGroup className="space-y-2">
                     <SidebarGroupLabel>coseat</SidebarGroupLabel>
-                    <DropdownAccountSidebarView />
+                    {mounted ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger className="text-left" asChild>
+                                <div className="flex items-center justify-between border rounded-2xl p-2 w-full">
+                                    <div className="flex items-center gap-4">
+                                        <User size={17} />
+                                        <span className="font-semibold">
+                                            {name || "N/A"}
+                                        </span>
+                                    </div>
+                                </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItemLogout />
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ): (
+                        <div className="hover:cursor-not-allowed flex items-center gap-4 border rounded-2xl p-2 w-full font-semibold text-muted-foreground">
+                            <Loader2 size={17} className="animate-spin" /> Syncing up!
+                        </div>
+                    )}
                     <Input placeholder="Search event..." />
                     <SidebarGroupContent>
                         <SidebarMenu className="space-y-2">
