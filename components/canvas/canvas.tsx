@@ -5,18 +5,14 @@ import { redirect } from "next/navigation";
 import BottomControlPanel from "@/components/canvas/bottom-control-panel/bottom-control-panel";
 import LeftControlPanel from "@/components/canvas/left-control-panel/left-control-panel";
 import { useEffect, useRef, useState } from "react";
-import useBlocksStore from "@/store/use-blocks";
-import Block from "./block";
 import useZoomPanStore from "@/store/use-zoom-pan";
 import RenderChairs from "./render-chairs";
+import RenderBlocks from "./render-blocks";
 
 interface CanvasProps {
     eventId: string;
 }
 const Canvas: React.FC<CanvasProps> = ({ eventId }) => {
-    // Nodes
-    const { blocks } = useBlocksStore()
-
     const canvasRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     
@@ -126,21 +122,7 @@ const Canvas: React.FC<CanvasProps> = ({ eventId }) => {
                 }}
             >
               <RenderChairs />
-
-                {blocks.map((block) => (
-                    <Block 
-                        key={block.id}
-                        className="absolute"
-                        x={block.x}
-                        y={block.y}
-                        id={block.id}
-                        text={block.text}
-                        width={block.width}
-                        height={block.height}
-                        zoom={zoom}
-                        pan={pan}
-                    />
-                ))}
+              <RenderBlocks />
             </div>
         </div>
     );
