@@ -18,7 +18,6 @@ export interface ChairType {
     x: number;
     y: number;
     name: string;
-    isOccupied: boolean;
 }
 
 export interface BlockType {

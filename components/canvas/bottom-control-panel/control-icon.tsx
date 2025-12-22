@@ -1,3 +1,7 @@
+/*
+    ControlIcon Component (only for rendering purposes, logic lives within the onClick prop)
+*/  
+
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { LucideProps } from "lucide-react";
 

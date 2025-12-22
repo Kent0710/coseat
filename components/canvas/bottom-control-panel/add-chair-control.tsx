@@ -1,9 +1,13 @@
-'use client'
+"use client";
 
 import { Armchair } from "lucide-react";
 import ControlIcon from "./control-icon";
 import useChairsStore from "@/store/use-chairs";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
+import { usePathname } from "next/navigation";
+
+import { createNewChairAction } from "@/actions/chair/create-new-chair-action";
+import { toast } from "sonner";
 
 interface AddChairControlProps {
     pan: { x: number; y: number };
@@ -11,28 +15,41 @@ interface AddChairControlProps {
 }
 
 const AddChairControl: React.FC<AddChairControlProps> = ({ pan, zoom }) => {
-    const counter = useRef(0);
-    const { setChairs } = useChairsStore()
+    const pathname = usePathname();
 
-    const handleClick = useCallback(() => {
+    const { setChairs } = useChairsStore();
+
+    const handleClick = useCallback(async () => {
         // Transform screen center to canvas coordinates
         const screenCenterX = window.innerWidth / 2;
         const screenCenterY = window.innerHeight / 2;
-        
+
         const canvasX = (screenCenterX - pan.x) / zoom;
         const canvasY = (screenCenterY - pan.y) / zoom;
+
+        //TODO: use optimistic UI update here
+        const { success, message, newChair } = await createNewChairAction(
+            pathname.split("/")[2],
+            canvasX,
+            canvasY
+        );
+
+        if (!success || !newChair) {
+            console.error(message);
+            toast.error("Something went wrong. Please try again.");
+            return;
+        }
 
         setChairs((prev) => [
             ...prev,
             {
-                id: `chair-${counter.current++}`,
-                x: canvasX,
-                y: canvasY,
-                name: `Chair ${counter.current}`,
-                isOccupied: false,
+                id: newChair.id,
+                x: newChair.x,
+                y: newChair.y,
+                name: newChair.name,
             },
         ]);
-    }, [pan.x, pan.y, setChairs, zoom]);
+    }, [pan.x, pan.y, pathname, setChairs, zoom]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -46,11 +63,11 @@ const AddChairControl: React.FC<AddChairControlProps> = ({ pan, zoom }) => {
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [handleClick])
+    }, [handleClick]);
 
     return (
         <ControlIcon icon={Armchair} onClick={handleClick} keyShortcut="c" />
-    )
+    );
 };
 
 export default AddChairControl;
