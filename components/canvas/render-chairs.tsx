@@ -14,12 +14,10 @@ const RenderChairs = () => {
     const { zoom, pan } = useZoomPanStore();
     const { chairs, setChairs } = useChairsStore();
 
-    const pathname = usePathname();
+    const eventId = getEventIdOnParams(usePathname());
 
     useEffect(() => {
         const getChairs = async () => {
-            const eventId = getEventIdOnParams(pathname);
-
             if (!eventId) {
                 toast.error("Event not found.");
                 redirect("/home");
@@ -31,7 +29,7 @@ const RenderChairs = () => {
         };
 
         getChairs();
-    }, [pathname, setChairs])
+    }, [eventId, setChairs])
 
     return chairs.map((chair) => (
         <Chair
@@ -42,6 +40,7 @@ const RenderChairs = () => {
             id={chair.id}
             zoom={zoom}
             pan={pan}
+            eventId={eventId}
         />
     ));
 };

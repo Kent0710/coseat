@@ -9,11 +9,19 @@ import {
 
 import { useRef, useState, useEffect } from "react";
 
-import { Armchair, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, User } from "lucide-react";
+import {
+    Armchair,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    ChevronUp,
+    User,
+} from "lucide-react";
 import { Input } from "../ui/input";
 import { twMerge } from "tailwind-merge";
 import useChairsStore from "@/store/use-chairs";
 import { toast } from "sonner";
+import { deleteChairByIdAction } from "@/actions/chair/delete-chair-by-id-action";
 
 interface ChairProps {
     className?: string;
@@ -22,23 +30,34 @@ interface ChairProps {
     id: string;
     zoom: number;
     pan: { x: number; y: number };
+    eventId: string;
 }
-const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
+const Chair: React.FC<ChairProps> = ({
+    className,
+    x,
+    y,
+    id,
+    zoom,
+    pan,
+    eventId,
+}) => {
     const [isAssigning, setIsAssigning] = useState(false);
     const [isSelected, setIsSelected] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [assignedName, setAssignedName] = useState("");
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
     const [currentPosition, setCurrentPosition] = useState({ x, y });
-    const [lastDirection, setLastDirection] = useState<'right' | 'left' | 'up' | 'down' | null>(null);
+    const [lastDirection, setLastDirection] = useState<
+        "right" | "left" | "up" | "down" | null
+    >(null);
     const [lastAddedPosition, setLastAddedPosition] = useState({ x: 0, y: 0 });
 
     const chairRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // The chairs store
-    const { setChairs } = useChairsStore()
-    
+    const { chairs, setChairs } = useChairsStore();
+
     const handleMouseDown = (e: React.MouseEvent) => {
         if (isAssigning) {
             // Cancel assignment if clicking outside the input
@@ -54,11 +73,11 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
         e.stopPropagation();
         setIsSelected(true);
         setIsDragging(true);
-        
+
         // Calculate offset in canvas coordinates
         const canvasMouseX = (e.clientX - pan.x) / zoom;
         const canvasMouseY = (e.clientY - pan.y) / zoom;
-        
+
         setDragOffset({
             x: canvasMouseX - currentPosition.x,
             y: canvasMouseY - currentPosition.y,
@@ -76,13 +95,13 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(true);
-        
+
         // Calculate offset in canvas coordinates for touch
         if (e.touches.length > 0) {
             const touch = e.touches[0];
             const canvasMouseX = (touch.clientX - pan.x) / zoom;
             const canvasMouseY = (touch.clientY - pan.y) / zoom;
-            
+
             setDragOffset({
                 x: canvasMouseX - currentPosition.x,
                 y: canvasMouseY - currentPosition.y,
@@ -97,11 +116,11 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
             // Transform screen coordinates to canvas coordinates
             const canvasMouseX = (e.clientX - pan.x) / zoom;
             const canvasMouseY = (e.clientY - pan.y) / zoom;
-            
+
             // Subtract the offset to get chair position
             const canvasX = canvasMouseX - dragOffset.x;
             const canvasY = canvasMouseY - dragOffset.y;
-            
+
             // Update local position state for smooth rendering
             setCurrentPosition({ x: canvasX, y: canvasY });
         };
@@ -112,11 +131,11 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
                 // Transform screen coordinates to canvas coordinates
                 const canvasMouseX = (touch.clientX - pan.x) / zoom;
                 const canvasMouseY = (touch.clientY - pan.y) / zoom;
-                
+
                 // Subtract the offset to get chair position
                 const canvasX = canvasMouseX - dragOffset.x;
                 const canvasY = canvasMouseY - dragOffset.y;
-                
+
                 // Update local position state for smooth rendering
                 setCurrentPosition({ x: canvasX, y: canvasY });
             }
@@ -128,7 +147,11 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
             setChairs((prev) =>
                 prev.map((chair) =>
                     chair.id === id
-                        ? { ...chair, x: currentPosition.x, y: currentPosition.y }
+                        ? {
+                              ...chair,
+                              x: currentPosition.x,
+                              y: currentPosition.y,
+                          }
                         : chair
                 )
             );
@@ -199,9 +222,8 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
         }
     }, [isSelected]);
 
-
-    const addChair = (direction : 'right' | 'left' | 'up' | 'down') => {
-        const offset = 140; 
+    const addChair = (direction: "right" | "left" | "up" | "down") => {
+        const offset = 140;
 
         let x = 0;
         let y = 0;
@@ -209,31 +231,33 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
         if (chairRef.current) {
             // If clicking the same direction consecutively, use last added position
             // Otherwise, use the original chair's position
-            const baseX = (lastDirection === direction && lastAddedPosition.x !== 0) 
-                ? lastAddedPosition.x 
-                : chairRef.current.offsetLeft;
-            const baseY = (lastDirection === direction && lastAddedPosition.y !== 0) 
-                ? lastAddedPosition.y 
-                : chairRef.current.offsetTop;
+            const baseX =
+                lastDirection === direction && lastAddedPosition.x !== 0
+                    ? lastAddedPosition.x
+                    : chairRef.current.offsetLeft;
+            const baseY =
+                lastDirection === direction && lastAddedPosition.y !== 0
+                    ? lastAddedPosition.y
+                    : chairRef.current.offsetTop;
 
-            switch(direction) {
-                case 'right':
+            switch (direction) {
+                case "right":
                     x = baseX + offset;
                     y = baseY;
                     break;
-                case 'left':
+                case "left":
                     x = baseX - offset;
                     y = baseY;
                     break;
-                case 'up':
+                case "up":
                     x = baseX;
                     y = baseY - offset;
                     break;
-                case 'down':
+                case "down":
                     x = baseX;
                     y = baseY + offset;
                     break;
-            };
+            }
 
             // Update last direction and position
             setLastDirection(direction);
@@ -250,7 +274,7 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
                 },
             ]);
         }
-    }
+    };
 
     // Prevent drag when clicking on interactive elements
     const handleChevronClick = (e: React.MouseEvent, action: () => void) => {
@@ -259,13 +283,23 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
     };
 
     // Handle chair deletion
-    const handleDelete = (chairId: string) => {
-        if (!chairId) {
-            toast.error("Chair does not exist!")
+    const handleDelete = async () => {
+        // snapshot
+        const previousChairs = chairs;
+
+        // optimistic update
+        setChairs((prev) => prev.filter((chair) => chair.id !== id));
+
+        const res = await deleteChairByIdAction(eventId, id);
+
+        if (!res.success) {
+            setChairs(previousChairs);
+            toast.error("Failed to delete chair. Please try again.");
+            return;
         }
 
-        setChairs((prev) => prev.filter((chair) => chair.id !== chairId));
-    }
+        toast.success("Chair deleted.")
+    };
 
     return (
         <ContextMenu>
@@ -309,30 +343,44 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
                             <ChevronRight
                                 className="absolute right-[-6rem] top-[2rem] bg-blue-600 rounded-full text-white cursor-pointer"
                                 size={30}
-                                onClick={(e) => handleChevronClick(e, () => addChair('right'))}
+                                onClick={(e) =>
+                                    handleChevronClick(e, () =>
+                                        addChair("right")
+                                    )
+                                }
                                 onMouseDown={(e) => e.stopPropagation()}
                                 onTouchStart={(e) => e.stopPropagation()}
                             />
-                            <ChevronLeft 
+                            <ChevronLeft
                                 className="absolute left-[-6rem] top-[2rem] bg-blue-600 rounded-full text-white cursor-pointer"
                                 size={30}
                                 onMouseDown={(e) => e.stopPropagation()}
                                 onTouchStart={(e) => e.stopPropagation()}
-                                onClick={(e) => handleChevronClick(e, () => addChair('left'))}
+                                onClick={(e) =>
+                                    handleChevronClick(e, () =>
+                                        addChair("left")
+                                    )
+                                }
                             />
-                            <ChevronUp 
+                            <ChevronUp
                                 className="absolute top-[-3rem] right-[-1rem] bg-blue-600 rounded-full text-white cursor-pointer"
                                 size={30}
                                 onMouseDown={(e) => e.stopPropagation()}
                                 onTouchStart={(e) => e.stopPropagation()}
-                                onClick={(e) => handleChevronClick(e, () => addChair('up'))}
+                                onClick={(e) =>
+                                    handleChevronClick(e, () => addChair("up"))
+                                }
                             />
-                            <ChevronDown 
+                            <ChevronDown
                                 className="absolute bottom-[-9rem] right-[-1rem] bg-blue-600 rounded-full text-white cursor-pointer"
                                 size={30}
                                 onMouseDown={(e) => e.stopPropagation()}
                                 onTouchStart={(e) => e.stopPropagation()}
-                                onClick={(e) => handleChevronClick(e, () => addChair('down'))}
+                                onClick={(e) =>
+                                    handleChevronClick(e, () =>
+                                        addChair("down")
+                                    )
+                                }
                             />
                         </div>
                     )}
@@ -342,7 +390,7 @@ const Chair: React.FC<ChairProps> = ({ className, x, y, id, zoom, pan }) => {
                 <ContextMenuItem onSelect={handleAssign}>
                     Assign
                 </ContextMenuItem>
-                <ContextMenuItem onSelect={() => handleDelete(id)}>
+                <ContextMenuItem onSelect={handleDelete}>
                     Delete
                 </ContextMenuItem>
             </ContextMenuContent>
