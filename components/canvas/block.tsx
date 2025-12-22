@@ -12,17 +12,20 @@ import {
     ContextMenuItem,
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { deleteBlockByIdAction } from "@/actions/block/delete-block-by-id-action";
+import { toast } from "sonner";
 
 interface BlockProps extends BlockType {
     zoom: number;
     pan: { x: number; y: number };
     className?: string;
+    eventId: string;
 }
 
-const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
+const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
     const blockRef = useRef<HTMLDivElement>(null);
 
-    const { setBlocks } = useBlocksStore();
+    const { blocks, setBlocks } = useBlocksStore();
 
     // state for handling over (hover) edge states
     const [isEdgeOver, setIsEdgeOver] = useState({
@@ -59,13 +62,22 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
         if (offsetY < cornerThreshold && offsetX < cornerThreshold) {
             setOnEdge((prev) => ({ ...prev, topLeft: true }));
             console.log("on top-left corner");
-        } else if (offsetY < cornerThreshold && offsetX > rect.width - cornerThreshold) {
+        } else if (
+            offsetY < cornerThreshold &&
+            offsetX > rect.width - cornerThreshold
+        ) {
             setOnEdge((prev) => ({ ...prev, topRight: true }));
             console.log("on top-right corner");
-        } else if (offsetY > rect.height - cornerThreshold && offsetX < cornerThreshold) {
+        } else if (
+            offsetY > rect.height - cornerThreshold &&
+            offsetX < cornerThreshold
+        ) {
             setOnEdge((prev) => ({ ...prev, bottomLeft: true }));
             console.log("on bottom-left corner");
-        } else if (offsetY > rect.height - cornerThreshold && offsetX > rect.width - cornerThreshold) {
+        } else if (
+            offsetY > rect.height - cornerThreshold &&
+            offsetX > rect.width - cornerThreshold
+        ) {
             setOnEdge((prev) => ({ ...prev, bottomRight: true }));
             console.log("on bottom-right corner");
         } else if (offsetY < edgeThreshold) {
@@ -81,7 +93,16 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
             setOnEdge((prev) => ({ ...prev, right: true }));
             console.log("on right edge");
         } else {
-            setOnEdge({ top: false, right: false, bottom: false, left: false, topLeft: false, topRight: false, bottomLeft: false, bottomRight: false });
+            setOnEdge({
+                top: false,
+                right: false,
+                bottom: false,
+                left: false,
+                topLeft: false,
+                topRight: false,
+                bottomLeft: false,
+                bottomRight: false,
+            });
         }
     };
 
@@ -104,7 +125,10 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                 bottomLeft: false,
                 bottomRight: false,
             });
-        } else if (offsetY < cornerThreshold && offsetX > rect.width - cornerThreshold) {
+        } else if (
+            offsetY < cornerThreshold &&
+            offsetX > rect.width - cornerThreshold
+        ) {
             setIsEdgeOver({
                 top: false,
                 right: false,
@@ -115,7 +139,10 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                 bottomLeft: false,
                 bottomRight: false,
             });
-        } else if (offsetY > rect.height - cornerThreshold && offsetX < cornerThreshold) {
+        } else if (
+            offsetY > rect.height - cornerThreshold &&
+            offsetX < cornerThreshold
+        ) {
             setIsEdgeOver({
                 top: false,
                 right: false,
@@ -126,7 +153,10 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                 bottomLeft: true,
                 bottomRight: false,
             });
-        } else if (offsetY > rect.height - cornerThreshold && offsetX > rect.width - cornerThreshold) {
+        } else if (
+            offsetY > rect.height - cornerThreshold &&
+            offsetX > rect.width - cornerThreshold
+        ) {
             setIsEdgeOver({
                 top: false,
                 right: false,
@@ -211,7 +241,16 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
                 blockRef.current.style.cursor = "grab";
             }
         }
-    }, [isEdgeOver.bottom, isEdgeOver.left, isEdgeOver.right, isEdgeOver.top, isEdgeOver.topLeft, isEdgeOver.topRight, isEdgeOver.bottomLeft, isEdgeOver.bottomRight]);
+    }, [
+        isEdgeOver.bottom,
+        isEdgeOver.left,
+        isEdgeOver.right,
+        isEdgeOver.top,
+        isEdgeOver.topLeft,
+        isEdgeOver.topRight,
+        isEdgeOver.bottomLeft,
+        isEdgeOver.bottomRight,
+    ]);
 
     useEffect(() => {
         // top edge logic
@@ -579,10 +618,23 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
     };
 
     // context menu logic
-    const handleDelete = () => {
-        setBlocks((prevBlocks) =>
-            prevBlocks.filter((block) => block.id !== id)
-        );
+    const handleDelete = async () => {
+        // snapshot
+        const previousBlocks = blocks;
+
+        // optimistic update
+        setBlocks((prev) => prev.filter((block) => block.id !== id));
+
+        const res = await deleteBlockByIdAction(eventId, id);
+
+        if (!res.success) {
+            // rollback
+            setBlocks(previousBlocks);
+            toast.error(res.message);
+            return;
+        }
+
+        toast.success("Block deleted.");
     };
 
     return (
@@ -591,8 +643,14 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height }) => {
             y={y}
             id={id}
             disableDrag={
-                onEdge.top || onEdge.right || onEdge.bottom || onEdge.left ||
-                onEdge.topLeft || onEdge.topRight || onEdge.bottomLeft || onEdge.bottomRight
+                onEdge.top ||
+                onEdge.right ||
+                onEdge.bottom ||
+                onEdge.left ||
+                onEdge.topLeft ||
+                onEdge.topRight ||
+                onEdge.bottomLeft ||
+                onEdge.bottomRight
             }
         >
             <ContextMenu>

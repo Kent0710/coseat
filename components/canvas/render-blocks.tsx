@@ -44,6 +44,7 @@ const RenderBlocks = () => {
             zoom={zoom}
             pan={pan}
             text={block.text}
+            eventId={eventId}
         />
     ));
 };
