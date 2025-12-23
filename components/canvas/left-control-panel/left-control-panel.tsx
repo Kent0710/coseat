@@ -19,9 +19,17 @@ import {
 
 import Link from "next/link";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname , useRouter} from "next/navigation";
+import { getEventIdOnParams } from "@/lib/utils";
+import { toast } from "sonner";
+import { getEventTitleAction } from "@/actions/events/get-event-title-action";
 
 const LeftControlPanel = () => {
+    const pathname = usePathname();
+    const router = useRouter();
+
+    const [eventName, setEventName] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
     const items = [
@@ -47,6 +55,28 @@ const LeftControlPanel = () => {
         },
     ];
 
+    useEffect(() => {
+        const getEvent = async () => {
+            const eventId = getEventIdOnParams(pathname);
+
+            const eventName = await getEventTitleAction(eventId);
+
+            if (!eventName) {
+                toast.error("Event not found. Please try again.");
+                router.push("/home");
+                return;
+            }
+
+            setEventName(eventName);
+        };
+
+        getEvent();
+
+        return () => {
+            setEventName(null);
+        };
+    }, [pathname, router]);
+
     return (
         <div className="bg-white border shadow-sm rounded-2xl w-[20rem] p-4 z-50 absolute top-4 left-4">
             <section className="flex items-center justify-between">
@@ -56,7 +86,9 @@ const LeftControlPanel = () => {
                 >
                     <DropdownMenuTrigger className="outline-none">
                         <div className="flex items-center gap-2">
-                            <p className="text-lg font-medium"> coseat </p>
+                            <p className="text-lg font-medium"> 
+                                {eventName || "N/A"}
+                            </p>
                             <ChevronDown
                                 className={` 
                                     transition-transform duration-200 
