@@ -7,7 +7,7 @@ import {
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
 
 import {
     Armchair,
@@ -23,6 +23,7 @@ import useChairsStore from "@/store/use-chairs";
 import { toast } from "sonner";
 import { deleteChairByIdAction } from "@/actions/chair/delete-chair-by-id-action";
 import { updateChairAction } from "@/actions/chair/update-chair-action";
+import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 
 interface ChairProps {
     className?: string;
@@ -55,27 +56,20 @@ const Chair: React.FC<ChairProps> = ({
 
     const chairRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // The chairs store
     const { chairs, setChairs } = useChairsStore();
 
     // Debounced update function to prevent rapid database calls
-    const debouncedUpdateChair = useCallback(() => {
-        if (debounceTimeoutRef.current) {
-            clearTimeout(debounceTimeoutRef.current);
-        }
-
-        debounceTimeoutRef.current = setTimeout(async () => {
-            await updateChairAction(
-                id,
-                eventId,
-                currentPosition.x,
-                currentPosition.y
-            );
-            toast.success("Chair position updated.");
-        }, 500);
-    }, [id, currentPosition.x, currentPosition.y, eventId]);
+    const debouncedUpdateChair = useDebouncedCallback(async () => {
+        await updateChairAction(
+            id,
+            eventId,
+            currentPosition.x,
+            currentPosition.y
+        );
+        toast.success("Chair position updated.");
+    }, 1000);
 
     const handleMouseDown = (e: React.MouseEvent) => {
         if (isAssigning) {
@@ -190,25 +184,7 @@ const Chair: React.FC<ChairProps> = ({
             document.removeEventListener("touchmove", handleTouchMove);
             document.removeEventListener("touchend", handleEnd);
         };
-    }, [
-        isDragging,
-        zoom,
-        pan,
-        dragOffset,
-        id,
-        setChairs,
-        currentPosition,
-        debouncedUpdateChair,
-    ]);
-
-    // Cleanup debounce timeout on unmount
-    useEffect(() => {
-        return () => {
-            if (debounceTimeoutRef.current) {
-                clearTimeout(debounceTimeoutRef.current);
-            }
-        };
-    }, []);
+    }, [isDragging, zoom, pan, dragOffset, id, setChairs, currentPosition, debouncedUpdateChair]);
 
     // Handle chair assignment
     const handleAssign = () => {

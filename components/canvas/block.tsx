@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/context-menu";
 import { deleteBlockByIdAction } from "@/actions/block/delete-block-by-id-action";
 import { toast } from "sonner";
+import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
+import { updateBlockAction } from "@/actions/block/update-block-action";
 
 interface BlockProps extends BlockType {
     zoom: number;
@@ -50,6 +52,21 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
         bottomLeft: false,
         bottomRight: false,
     });
+
+    // debounced update function to prevent rapid database calls
+    const debouncedUpdateBlock = useDebouncedCallback(async () => {
+        const currentBlock = blocks.find((block) => block.id === id);
+        if (!currentBlock) return;
+
+        await updateBlockAction(
+            id,
+            eventId,
+            currentBlock.x,
+            currentBlock.y,
+            currentBlock.width,
+            currentBlock.height
+        );
+    }, 1000);
 
     const handleEdgeDown = (e: React.MouseEvent) => {
         const rect = (e.target as HTMLDivElement).getBoundingClientRect();
@@ -286,6 +303,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
             // handle mouse up
             const handleMouseUp = () => {
                 setOnEdge((prev) => ({ ...prev, top: false }));
+                debouncedUpdateBlock();
             };
 
             // add event listener
@@ -334,6 +352,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
             // handle mouse up
             const handleMouseUp = () => {
                 setOnEdge((prev) => ({ ...prev, left: false }));
+                debouncedUpdateBlock();
             };
 
             // add event listener
@@ -370,6 +389,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
             // handle mouse up
             const handleMouseUp = () => {
                 setOnEdge((prev) => ({ ...prev, right: false }));
+                debouncedUpdateBlock();
             };
 
             // add event listener
@@ -405,6 +425,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
             // handle mouse up
             const handleMouseUp = () => {
                 setOnEdge((prev) => ({ ...prev, bottom: false }));
+                debouncedUpdateBlock();
             };
             // add event listener
             window.addEventListener("mousemove", handleMouseMove);
@@ -453,6 +474,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
 
             const handleMouseUp = () => {
                 setOnEdge((prev) => ({ ...prev, topLeft: false }));
+                debouncedUpdateBlock();
             };
 
             window.addEventListener("mousemove", handleMouseMove);
@@ -497,6 +519,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
 
             const handleMouseUp = () => {
                 setOnEdge((prev) => ({ ...prev, topRight: false }));
+                debouncedUpdateBlock();
             };
 
             window.addEventListener("mousemove", handleMouseMove);
@@ -541,6 +564,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
 
             const handleMouseUp = () => {
                 setOnEdge((prev) => ({ ...prev, bottomLeft: false }));
+                debouncedUpdateBlock();
             };
 
             window.addEventListener("mousemove", handleMouseMove);
@@ -577,6 +601,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
 
             const handleMouseUp = () => {
                 setOnEdge((prev) => ({ ...prev, bottomRight: false }));
+                debouncedUpdateBlock();
             };
 
             window.addEventListener("mousemove", handleMouseMove);
@@ -588,7 +613,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
                 setOnEdge((prev) => ({ ...prev, bottomRight: false }));
             };
         }
-    }, [id, onEdge, setBlocks]);
+    }, [debouncedUpdateBlock, id, onEdge, setBlocks]);
 
     // double click
     // double clicking allows for text editing inside the block
@@ -652,6 +677,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
                 onEdge.bottomLeft ||
                 onEdge.bottomRight
             }
+            debounceUpdate={debouncedUpdateBlock}
         >
             <ContextMenu>
                 <ContextMenuTrigger>

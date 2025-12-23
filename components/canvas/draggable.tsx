@@ -8,8 +8,9 @@ import React, { useRef, useState, useEffect } from "react";
 interface DraggableProps extends DraggableType {
     children: React.ReactNode;
     disableDrag? : boolean;
+    debounceUpdate? : () => Promise<void>;
 }
-const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag }) => {
+const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag, debounceUpdate, }) => {
     const [currentBlock, setCurrentBlock] = useState<BlockType | null>(null);
     const { setBlocks} = useBlocksStore()
     
@@ -141,6 +142,9 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag }
 
         const handleEnd = () => {
             setIsDragging(false);
+            if (debounceUpdate) {
+                debounceUpdate();
+            }
         };
 
         document.addEventListener("mousemove", handleMouseMove);
@@ -155,7 +159,7 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag }
             document.removeEventListener("touchend", handleEnd);
         }
  
-    }, [dragOffset.x, dragOffset.y, isDragging, pan.x, pan.y, zoom, disableDrag, setBlocks, id]);
+    }, [dragOffset.x, dragOffset.y, isDragging, pan.x, pan.y, zoom, disableDrag, setBlocks, id, debounceUpdate]);
 
     useEffect(() => {
 
