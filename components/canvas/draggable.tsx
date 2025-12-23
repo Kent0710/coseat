@@ -4,16 +4,24 @@ import { BlockType, DraggableType } from "@/lib/types";
 import useBlocksStore from "@/store/use-blocks";
 import useZoomPanStore from "@/store/use-zoom-pan";
 import React, { useRef, useState, useEffect } from "react";
+import { toast } from "sonner";
 
 interface DraggableProps extends DraggableType {
     children: React.ReactNode;
-    disableDrag? : boolean;
-    debounceUpdate? : () => Promise<void>;
+    disableDrag?: boolean;
+    debounceUpdate?: () => Promise<void>;
 }
-const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag, debounceUpdate, }) => {
+const Draggable: React.FC<DraggableProps> = ({
+    children,
+    x,
+    y,
+    id,
+    disableDrag,
+    debounceUpdate,
+}) => {
     const [currentBlock, setCurrentBlock] = useState<BlockType | null>(null);
-    const { setBlocks} = useBlocksStore()
-    
+    const { blocks, setBlocks } = useBlocksStore();
+
     // zoom and pan offsets
     const { zoom, pan } = useZoomPanStore();
 
@@ -22,30 +30,30 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag, 
 
     // Offsets
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+    const [initialDragPosition, setInitialDragPosition] = useState({ x: 0, y: 0 });
 
     const ref = useRef<HTMLDivElement>(null);
 
     // get the current block that we are working on from the store
     useEffect(() => {
-        const getCurrentBlockFromStore = ()=> {
-            const block = useBlocksStore.getState().blocks.find((b) => b.id === id) || null;
+        const getCurrentBlockFromStore = () => {
+            const block =
+                useBlocksStore.getState().blocks.find((b) => b.id === id) ||
+                null;
             setCurrentBlock(block);
         };
 
         getCurrentBlockFromStore();
 
         // subscribe to store changes to update current block
-        const unsubscribe = useBlocksStore.subscribe(
-            () => {
-                getCurrentBlockFromStore();
-            }
-        );
+        const unsubscribe = useBlocksStore.subscribe(() => {
+            getCurrentBlockFromStore();
+        });
 
         return () => {
             unsubscribe();
-        }
-    }, [id])
-
+        };
+    }, [id]);
 
     const handleMouseDown = (e: React.MouseEvent) => {
         if (disableDrag || !currentBlock) return;
@@ -55,6 +63,9 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag, 
 
         setIsSelected(true);
         setIsDragging(true);
+
+        // Store initial position when drag starts
+        setInitialDragPosition({ x: currentBlock.x, y: currentBlock.y });
 
         // Calculate offset in canvas coordinates for mouse
         const canvasMouseX = (e.clientX - pan.x) / zoom;
@@ -68,10 +79,15 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag, 
 
     const handleTouchStart = (e: React.TouchEvent) => {
         if (disableDrag || !currentBlock) return;
-        
+
         e.stopPropagation();
 
         setIsDragging(true);
+
+        // Store initial position when drag starts
+        if (currentBlock) {
+            setInitialDragPosition({ x: currentBlock.x, y: currentBlock.y });
+        }
 
         // Calculate offsten in canvas for touch
         if (e.touches.length > 0) {
@@ -88,8 +104,7 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag, 
 
     // the event handlers when dragging
     useEffect(() => {
-
-        if (!isDragging) return; 
+        if (!isDragging) return;
 
         const handleMouseMove = (e: MouseEvent) => {
             if (disableDrag) {
@@ -108,12 +123,14 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag, 
             // Update local position state for smooth rendering
             setBlocks((blocks) =>
                 blocks.map((block) =>
-                    block.id === id ? { ...block, x: canvasX, y: canvasY } : block
+                    block.id === id
+                        ? { ...block, x: canvasX, y: canvasY }
+                        : block
                 )
             );
-              setCurrentBlock((prev) =>
-                    prev ? { ...prev, x: canvasX, y: canvasY } : prev
-                );
+            setCurrentBlock((prev) =>
+                prev ? { ...prev, x: canvasX, y: canvasY } : prev
+            );
         };
 
         const handleTouchMove = (e: TouchEvent) => {
@@ -131,7 +148,9 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag, 
                 // Update local positino state for smooth rendering
                 setBlocks((blocks) =>
                     blocks.map((block) =>
-                        block.id === id ? { ...block, x: canvasX, y: canvasY } : block
+                        block.id === id
+                            ? { ...block, x: canvasX, y: canvasY }
+                            : block
                     )
                 );
                 setCurrentBlock((prev) =>
@@ -142,8 +161,17 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag, 
 
         const handleEnd = () => {
             setIsDragging(false);
-            if (debounceUpdate) {
-                debounceUpdate();
+            
+            if (debounceUpdate && currentBlock) {
+                // Check if position actually changed from initial position
+                const didMove =
+                    Math.abs(currentBlock.x - initialDragPosition.x) > 0.5 ||
+                    Math.abs(currentBlock.y - initialDragPosition.y) > 0.5;
+                    
+                if (didMove) {
+                    debounceUpdate();
+                    toast.success("Block position updated");
+                }
             }
         };
 
@@ -157,12 +185,10 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag, 
             document.removeEventListener("touchmove", handleTouchMove);
             document.removeEventListener("mouseup", handleEnd);
             document.removeEventListener("touchend", handleEnd);
-        }
- 
-    }, [dragOffset.x, dragOffset.y, isDragging, pan.x, pan.y, zoom, disableDrag, setBlocks, id, debounceUpdate]);
+        };
+    }, [dragOffset.x, dragOffset.y, isDragging, pan.x, pan.y, zoom, disableDrag, setBlocks, id, debounceUpdate, blocks, currentBlock, initialDragPosition.x, initialDragPosition.y]);
 
     useEffect(() => {
-
         // Handle clicks outside to deselect
         const handleClickOutside = (e: MouseEvent) => {
             if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -174,10 +200,9 @@ const Draggable: React.FC<DraggableProps> = ({ children, x, y, id, disableDrag, 
             document.addEventListener("mousedown", handleClickOutside);
             return () => {
                 document.removeEventListener("mousedown", handleClickOutside);
-            }
+            };
         }
-
-    }, [isSelected])
+    }, [isSelected]);
 
     return (
         <div
