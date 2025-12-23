@@ -157,7 +157,15 @@ const Chair: React.FC<ChairProps> = ({
 
         const handleEnd = async () => {
             setIsDragging(false);
-            // Update the store with final position when drag ends
+
+            const start = chairs.find((chair) => chair.id === id);
+
+            const didMove =
+                !start ||
+                start.x !== currentPosition.x ||
+                start.y !== currentPosition.y;
+
+            // Always update local state
             setChairs((prev) =>
                 prev.map((chair) =>
                     chair.id === id
@@ -170,8 +178,10 @@ const Chair: React.FC<ChairProps> = ({
                 )
             );
 
-            // Debounce the database update to prevent rapid calls
-            debouncedUpdateChair();
+            // Only debounce if the chair actually moved
+            if (didMove) {
+                debouncedUpdateChair();
+            }
         };
 
         document.addEventListener("mousemove", handleMouseMove);
@@ -185,7 +195,7 @@ const Chair: React.FC<ChairProps> = ({
             document.removeEventListener("touchmove", handleTouchMove);
             document.removeEventListener("touchend", handleEnd);
         };
-    }, [isDragging, zoom, pan, dragOffset, id, setChairs, currentPosition, debouncedUpdateChair]);
+    }, [isDragging, zoom, pan, dragOffset, id, setChairs, currentPosition, debouncedUpdateChair, chairs]);
 
     // Handle chair assignment
     const handleAssign = () => {
@@ -295,11 +305,7 @@ const Chair: React.FC<ChairProps> = ({
             ]);
 
             // server action call
-            const newChairRes = await createNewChairAction(
-                eventId,
-                x,
-                y
-            );
+            const newChairRes = await createNewChairAction(eventId, x, y);
 
             if (!newChairRes.success) {
                 setChairs(chairsCopy);
