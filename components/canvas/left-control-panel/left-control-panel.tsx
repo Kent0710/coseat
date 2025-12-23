@@ -7,6 +7,7 @@ import {
     Home,
     Inbox,
     Settings,
+    Loader2,
 } from "lucide-react";
 import { Button } from "../../ui/button";
 
@@ -20,7 +21,7 @@ import {
 import Link from "next/link";
 
 import { useEffect, useState } from "react";
-import { usePathname , useRouter} from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getEventIdOnParams } from "@/lib/utils";
 import { toast } from "sonner";
 import { getEventTitleAction } from "@/actions/events/get-event-title-action";
@@ -29,6 +30,7 @@ const LeftControlPanel = () => {
     const pathname = usePathname();
     const router = useRouter();
 
+    const [mounted, setMounted] = useState(false);
     const [eventName, setEventName] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
@@ -57,6 +59,8 @@ const LeftControlPanel = () => {
 
     useEffect(() => {
         const getEvent = async () => {
+            setMounted(true);
+
             const eventId = getEventIdOnParams(pathname);
 
             const eventName = await getEventTitleAction(eventId);
@@ -74,6 +78,7 @@ const LeftControlPanel = () => {
 
         return () => {
             setEventName(null);
+            setMounted(false);
         };
     }, [pathname, router]);
 
@@ -84,19 +89,28 @@ const LeftControlPanel = () => {
                     open={open}
                     onOpenChange={(isOpen) => setOpen(isOpen)}
                 >
-                    <DropdownMenuTrigger className="outline-none">
-                        <div className="flex items-center gap-2">
-                            <p className="text-lg font-medium"> 
-                                {eventName || "N/A"}
-                            </p>
-                            <ChevronDown
-                                className={` 
+                    {mounted ? (
+                        <DropdownMenuTrigger className="outline-none">
+                            <div className="flex items-center gap-2">
+                                <p className="text-lg font-medium">
+                                    {eventName || "N/A"}
+                                </p>
+                                <ChevronDown
+                                    className={` 
                                     transition-transform duration-200 
                                     ${open ? "rotate-180" : "rotate-0"}
                                     `}
-                            />
+                                />
+                            </div>
+                        </DropdownMenuTrigger>
+                    ): (
+                        <div className="flex items-center gap-4 text-muted-foreground">
+                            <Loader2 className="animate-spin" />
+                            <span
+                                className="font-medium "
+                            >Setting up...</span>
                         </div>
-                    </DropdownMenuTrigger>
+                    )}
                     <DropdownMenuContent>
                         {items.map((item) => (
                             <Link href={item.url} key={item.title}>
