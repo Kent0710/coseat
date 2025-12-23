@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { deleteChairByIdAction } from "@/actions/chair/delete-chair-by-id-action";
 import { updateChairAction } from "@/actions/chair/update-chair-action";
 import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
+import { createNewChairAction } from "@/actions/chair/create-new-chair-action";
 
 interface ChairProps {
     className?: string;
@@ -238,7 +239,7 @@ const Chair: React.FC<ChairProps> = ({
         }
     }, [isSelected]);
 
-    const addChair = (direction: "right" | "left" | "up" | "down") => {
+    const addChair = async (direction: "right" | "left" | "up" | "down") => {
         const offset = 140;
 
         let x = 0;
@@ -279,6 +280,10 @@ const Chair: React.FC<ChairProps> = ({
             setLastDirection(direction);
             setLastAddedPosition({ x, y });
 
+            // optimistic update
+            const chairsCopy = chairs;
+
+            // TODO: fix id here
             setChairs((prev) => [
                 ...prev,
                 {
@@ -286,9 +291,23 @@ const Chair: React.FC<ChairProps> = ({
                     x: x,
                     y: y,
                     name: `Chair ${prev.length + 1}`,
-                    isOccupied: false,
                 },
             ]);
+
+            // server action call
+            const newChairRes = await createNewChairAction(
+                eventId,
+                x,
+                y
+            );
+
+            if (!newChairRes.success) {
+                setChairs(chairsCopy);
+                toast.error("Failed to add chair. Please try again.");
+                return;
+            }
+
+            toast.success("Chair added.");
         }
     };
 
