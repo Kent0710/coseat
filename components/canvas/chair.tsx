@@ -7,7 +7,7 @@ import {
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 
 import {
     Armchair,
@@ -22,6 +22,7 @@ import { twMerge } from "tailwind-merge";
 import useChairsStore from "@/store/use-chairs";
 import { toast } from "sonner";
 import { deleteChairByIdAction } from "@/actions/chair/delete-chair-by-id-action";
+import { updateChairAction } from "@/actions/chair/update-chair-action";
 
 interface ChairProps {
     className?: string;
@@ -54,9 +55,27 @@ const Chair: React.FC<ChairProps> = ({
 
     const chairRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // The chairs store
     const { chairs, setChairs } = useChairsStore();
+
+    // Debounced update function to prevent rapid database calls
+    const debouncedUpdateChair = useCallback(() => {
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+        }
+
+        debounceTimeoutRef.current = setTimeout(async () => {
+            await updateChairAction(
+                id,
+                eventId,
+                currentPosition.x,
+                currentPosition.y
+            );
+            toast.success("Chair position updated.");
+        }, 500);
+    }, [id, currentPosition.x, currentPosition.y, eventId]);
 
     const handleMouseDown = (e: React.MouseEvent) => {
         if (isAssigning) {
@@ -141,7 +160,7 @@ const Chair: React.FC<ChairProps> = ({
             }
         };
 
-        const handleEnd = () => {
+        const handleEnd = async () => {
             setIsDragging(false);
             // Update the store with final position when drag ends
             setChairs((prev) =>
@@ -155,6 +174,9 @@ const Chair: React.FC<ChairProps> = ({
                         : chair
                 )
             );
+
+            // Debounce the database update to prevent rapid calls
+            debouncedUpdateChair();
         };
 
         document.addEventListener("mousemove", handleMouseMove);
@@ -168,7 +190,25 @@ const Chair: React.FC<ChairProps> = ({
             document.removeEventListener("touchmove", handleTouchMove);
             document.removeEventListener("touchend", handleEnd);
         };
-    }, [isDragging, zoom, pan, dragOffset, id, setChairs, currentPosition]);
+    }, [
+        isDragging,
+        zoom,
+        pan,
+        dragOffset,
+        id,
+        setChairs,
+        currentPosition,
+        debouncedUpdateChair,
+    ]);
+
+    // Cleanup debounce timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (debounceTimeoutRef.current) {
+                clearTimeout(debounceTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Handle chair assignment
     const handleAssign = () => {
@@ -298,7 +338,7 @@ const Chair: React.FC<ChairProps> = ({
             return;
         }
 
-        toast.success("Chair deleted.")
+        toast.success("Chair deleted.");
     };
 
     return (
