@@ -9,6 +9,8 @@ import { useCallback, useEffect } from "react";
 import { deleteChairsAction } from "@/actions/chair/delete-chairs-action";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
+import { getEventIdOnParams } from "@/lib/utils";
+import { deleteBlocksAction } from "@/actions/block/delete-blocks-action";
 
 const ResetControlIcon = () => {
     const pathname = usePathname();
@@ -18,24 +20,47 @@ const ResetControlIcon = () => {
 
     const handleClick = useCallback(() => {
         const deleteAll = async () => {
-            const res = await deleteChairsAction(pathname.split("/")[2]);
+            // copy of the original store
+            const chairsCopy = chairs;
+            const blocksCopy = blocks;
+
+            // optimistic UI update
+            setChairs([]);
+            setBlocks([]);
+
+            const eventId = getEventIdOnParams(pathname);
+
+            if (!eventId) {
+                toast.error("Failed to clear canvas. Please try again.");
+                return;
+            }
+
+            const deleteChairsRes = await deleteChairsAction(eventId);
+            const deleteBlocksRes = await deleteBlocksAction(eventId);
+
+            const res = {
+                success: deleteChairsRes.success && deleteBlocksRes.success,
+            };
 
             if (!res.success) {
                 toast.error("Failed to clear canvas. Please try again.");
+
+                // rollback to the original store
+                setChairs(chairsCopy);
+                setBlocks(blocksCopy);
+
                 return;
-            } else {
-                toast.success("Canvas cleared.");
-                setChairs([]);
-                setBlocks([]);
             }
+            
+            toast.success("Canvas cleared.");
         };
 
         deleteAll();
-    }, [pathname, setBlocks, setChairs]);
+    }, [blocks, chairs, pathname, setBlocks, setChairs]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "r" || e.key === "R") {
+            if (e.key === "z" || e.key === "Z") {
                 if (chairs.length === 0 && blocks.length === 0) return;
 
                 handleClick();
@@ -53,7 +78,7 @@ const ResetControlIcon = () => {
         <ControlIcon
             icon={BrushCleaning}
             onClick={handleClick}
-            keyShortcut="r"
+            keyShortcut="z"
         />
     );
 };
