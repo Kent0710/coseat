@@ -4,7 +4,30 @@ import { Trash } from "lucide-react";
 import { PreferencesViewTemplate } from "./preferences-dialog";
 import { Button } from "@/components/ui/button";
 
+import { deleteEventByIdAction } from "@/actions/events/delete-event-by-id-action";
+import { redirect, usePathname } from "next/navigation";
+import { getEventIdOnParams } from "@/lib/utils";
+import { toast } from "sonner";
+import { useTransition } from "react";
+
 const DangerPreferencesViwe = () => {
+    const [action, startTransition] = useTransition();
+    const eventId = getEventIdOnParams(usePathname());
+
+    const handleDeleteClick = async () => {
+        if (!eventId) return;
+
+        startTransition(async () => {
+            const result = await deleteEventByIdAction(eventId);
+            if (result.success) {
+                toast.success("Event deleted successfully");
+                redirect("/home");
+            } else {
+                toast.error(result.message);
+            }
+        });
+    };
+
     return (
         <PreferencesViewTemplate
             title="Danger Zone"
@@ -19,7 +42,11 @@ const DangerPreferencesViwe = () => {
                             data. This action cannot be undone.
                         </p>
                     </div>
-                    <Button variant="destructive">
+                    <Button
+                        variant="destructive"
+                        onClick={handleDeleteClick}
+                        disabled={action}
+                    >
                         <Trash /> Delete event
                     </Button>
                 </li>
