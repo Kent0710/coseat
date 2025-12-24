@@ -51,7 +51,9 @@ const RenderEvents = async () => {
                     You have no events yet. Create a new event to get started.
                 </p>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6
+                    animate-in slide-in-from-bottom-5 duration-300
+                ">
                     {events.map((event) => (
                         <Link
                             key={event.id}
