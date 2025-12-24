@@ -2,14 +2,12 @@
 
 import {
     ChevronDown,
-    Settings2,
     Calendar,
     Home,
     Inbox,
     Settings,
     Loader2,
 } from "lucide-react";
-import { Button } from "../../ui/button";
 
 import {
     DropdownMenu,
@@ -25,6 +23,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getEventIdOnParams } from "@/lib/utils";
 import { toast } from "sonner";
 import { getEventTitleAction } from "@/actions/events/get-event-title-action";
+import PreferencesDialog from "./preferences-dialog/preferences-dialog";
 
 const LeftControlPanel = () => {
     const pathname = usePathname();
@@ -103,12 +102,10 @@ const LeftControlPanel = () => {
                                 />
                             </div>
                         </DropdownMenuTrigger>
-                    ): (
+                    ) : (
                         <div className="flex items-center gap-4 text-muted-foreground">
                             <Loader2 className="animate-spin" />
-                            <span
-                                className="font-medium "
-                            >Setting up...</span>
+                            <span className="font-medium ">Setting up...</span>
                         </div>
                     )}
                     <DropdownMenuContent>
@@ -124,11 +121,7 @@ const LeftControlPanel = () => {
                         ))}
                     </DropdownMenuContent>
                 </DropdownMenu>
-
-                <Button variant={"outline"}>
-                    <Settings2 />
-                    Preferences
-                </Button>
+                <PreferencesDialog />
             </section>
         </div>
     );
