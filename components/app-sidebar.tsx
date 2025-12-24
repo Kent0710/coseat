@@ -12,7 +12,6 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Input } from "./ui/input";
 import Link from "next/link";
 
 import {
@@ -26,6 +25,8 @@ import { User } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getUsernameAction } from "@/actions/auth/get-username";
+
+import SearchEventDialog from "./events/search-event-dialog";
 
 const AppSidebar = () => {
     const [mounted, setMounted] = useState(false);
@@ -77,7 +78,7 @@ const AppSidebar = () => {
 
         return () => setMounted(false);
     }, []);
- 
+
     return (
         <Sidebar>
             <SidebarContent>
@@ -99,12 +100,13 @@ const AppSidebar = () => {
                                 <DropdownMenuItemLogout />
                             </DropdownMenuContent>
                         </DropdownMenu>
-                    ): (
+                    ) : (
                         <div className="hover:cursor-not-allowed flex items-center gap-4 border rounded-2xl p-2 w-full font-semibold text-muted-foreground">
-                            <Loader2 size={17} className="animate-spin" /> Syncing up!
+                            <Loader2 size={17} className="animate-spin" />{" "}
+                            Syncing up!
                         </div>
                     )}
-                    <Input placeholder="Search event..." />
+                    <SearchEventDialog />
                     <SidebarGroupContent>
                         <SidebarMenu className="space-y-2">
                             {items.map((item) => (
