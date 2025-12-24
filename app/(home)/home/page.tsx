@@ -1,6 +1,6 @@
 import { getEventsAction } from "@/actions/events/get-events-action";
 import CreateNewEventButton from "@/components/events/create-new-event-button";
-import { Button } from "@/components/ui/button";
+import JoinEventWithCodeButton from "@/components/events/join-event-with-code-button";
 import { PageWrapper, SectionWrapper } from "@/components/wrappers";
 import { formatEventDate } from "@/lib/utils";
 import { Calendar, Clock } from "lucide-react";
@@ -15,9 +15,7 @@ const HomePage = async () => {
         >
             <div className="flex gap-2 items-center">
                 <CreateNewEventButton />
-                <Link href={`/events/join`}>
-                    <Button variant={"secondary"}>Get Event Code</Button>
-                </Link>
+                <JoinEventWithCodeButton />
             </div>
 
             <Suspense
@@ -51,9 +49,11 @@ const RenderEvents = async () => {
                     You have no events yet. Create a new event to get started.
                 </p>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6
+                <div
+                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6
                     animate-in slide-in-from-bottom-5 duration-300
-                ">
+                "
+                >
                     {events.map((event) => (
                         <Link
                             key={event.id}
