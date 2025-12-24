@@ -5,6 +5,7 @@ export interface EventType {
         _seconds: number;
         _nanoseconds: number;
     };
+    code: string;
 }
 
 export interface DraggableType {

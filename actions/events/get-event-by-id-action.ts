@@ -3,18 +3,38 @@
 import { adminDb } from "@/lib/firebase/admin";
 import { EventType } from "@/lib/types";
 
-export async function getEventByIdAction(
-    eventId: string
-): Promise<EventType | null> {
+export async function getEventByIdAction(eventId: string) {
     try {
         const eventDoc = await adminDb.collection("events").doc(eventId).get();
 
         if (!eventDoc.exists) {
-            return null;
+            return {
+                success: true,
+                event: null,
+                message: "Event not found. Please try again",
+            };
         }
 
-        return { id: eventDoc.id, ...eventDoc.data() } as EventType;
+        const event = {
+            id: eventDoc.id,
+            title: eventDoc.data()?.title || "N/A",
+            createdAt: {
+                _seconds: eventDoc.data()?.createdAt.seconds || 0,
+                _nanoseconds: eventDoc.data()?.createdAt.nanoseconds || 0,
+            },
+            code: eventDoc.data()?.code || "N/A",
+        } as EventType;
+
+        return {
+            success: true,
+            event,
+        };
     } catch (err) {
-        throw new Error("Failed to get event by ID", { cause: err });
+        console.error("GET_EVENT_ERROR", err);
+        return {
+            success: false,
+            message: "Failed to get event. Please try again.",
+            event: null,
+        };
     }
 }

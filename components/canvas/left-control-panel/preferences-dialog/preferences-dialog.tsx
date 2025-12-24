@@ -32,6 +32,11 @@ const PreferencesDialog = () => {
 
     const ActiveComponent = VIEWS.find((v) => v.key === activeView)?.component;
 
+    //TODO: better ui for loading state
+    if (!event) {
+        return <div>loading...</div>;
+    }
+
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -93,14 +98,14 @@ interface PreferencesViewTemplateProps {
     children: React.ReactNode;
 }
 
-export const PreferencesViewTemplate: React.FC<PreferencesViewTemplateProps> = ({
-    title, description, children
-}) => {
+export const PreferencesViewTemplate: React.FC<
+    PreferencesViewTemplateProps
+> = ({ title, description, children }) => {
     return (
         <div>
             <h2 className="text-lg font-semibold">{title}</h2>
             <p className="border-b pb-4 mb-4">{description}</p>
             <div>{children}</div>
         </div>
-    )
-}
+    );
+};

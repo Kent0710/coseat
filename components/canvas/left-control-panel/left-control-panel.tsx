@@ -22,15 +22,18 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getEventIdOnParams } from "@/lib/utils";
 import { toast } from "sonner";
-import { getEventTitleAction } from "@/actions/events/get-event-title-action";
 import PreferencesDialog from "./preferences-dialog/preferences-dialog";
+import { getEventByIdAction } from "@/actions/events/get-event-by-id-action";
+import { Skeleton } from "@/components/ui/skeleton";
+import useEventStore from "@/store/use-event";
 
 const LeftControlPanel = () => {
     const pathname = usePathname();
     const router = useRouter();
 
+    const { event, setEvent } = useEventStore();
+
     const [mounted, setMounted] = useState(false);
-    const [eventName, setEventName] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
     const items = [
@@ -62,27 +65,40 @@ const LeftControlPanel = () => {
 
             const eventId = getEventIdOnParams(pathname);
 
-            const eventName = await getEventTitleAction(eventId);
+            const { event, success, message } = await getEventByIdAction(
+                eventId
+            );
 
-            if (!eventName) {
-                toast.error("Event not found. Please try again.");
+            if (!event && !success) {
+                toast.error(message);
                 router.push("/home");
                 return;
             }
 
-            setEventName(eventName);
+            setEvent(event);
         };
 
         getEvent();
 
         return () => {
-            setEventName(null);
+            setEvent(null);
             setMounted(false);
         };
-    }, [pathname, router]);
+    }, [pathname, router, setEvent]);
+
+    if (!event || !mounted) {
+        return (
+            <Skeleton className="bg-white border shadow-sm rounded-2xl w-[20rem] h-18 z-50 absolute top-4 left-4" />
+        );
+    }
 
     return (
-        <div className="bg-white border shadow-sm rounded-2xl w-[20rem] p-4 z-50 absolute top-4 left-4">
+        <div
+            className="
+            bg-white border shadow-sm rounded-2xl w-[20rem] p-4 z-50 absolute top-4 left-4
+            animate-in slide-in-from-bottom-5 duration-300
+        "
+        >
             <section className="flex items-center justify-between">
                 <DropdownMenu
                     open={open}
@@ -92,7 +108,7 @@ const LeftControlPanel = () => {
                         <DropdownMenuTrigger className="outline-none">
                             <div className="flex items-center gap-2">
                                 <p className="text-lg font-medium">
-                                    {eventName || "N/A"}
+                                    {event?.title || "N/A"}
                                 </p>
                                 <ChevronDown
                                     className={` 

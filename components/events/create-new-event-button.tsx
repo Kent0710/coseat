@@ -1,26 +1,30 @@
+"use client";
+
 import { redirect } from "next/navigation";
 import { createEventAction } from "@/actions/events/create-event-action";
-import FormActionSubmitButton from "../form-action-submit-button";
+import { Button } from "../ui/button";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 const CreateNewEventButton = () => {
+    const [action, startTransition] = useTransition();
+
     const handleCreateNew = async () => {
-        'use server'
-
-        const newEventId = await createEventAction();
-
-        if (newEventId) {
-            redirect(`/events/${newEventId}`);
-        } else {
-            // TODO: Handle error
-        }
+        startTransition(async () => {
+            const { success, eventId, message } = await createEventAction();
+            
+            if (success && eventId) {
+                redirect(`/events/${eventId}`);
+            } else {
+                toast.error(message);
+            }
+        });
     };
 
     return (
-        <form action={handleCreateNew}>
-            <FormActionSubmitButton>
-                Create New
-            </FormActionSubmitButton>
-        </form>
+        <Button onClick={handleCreateNew} disabled={action}>
+            Create New
+        </Button>
     );
 };
 

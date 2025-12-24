@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import { customAlphabet } from "nanoid";
+
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
@@ -36,4 +38,10 @@ export function formatEventDate(
 
 export const getEventIdOnParams = (pathname: string) => {
     return pathname.split("/")[2];
-}
+};
+
+export const generateEventCode = () => {
+    const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const eventCode = customAlphabet(alphabet, 6);
+    return eventCode();
+};
