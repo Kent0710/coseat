@@ -2,9 +2,15 @@
 
 import useEventStore from "@/store/use-event";
 import { PreferencesViewTemplate } from "./preferences-dialog";
+import { toast } from "sonner";
 
 const GeneralPreferencesView = () => {
     const { event } = useEventStore();
+
+    const handleClickCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast.success("Copied to clipboard!");
+    };
 
     return (
         <PreferencesViewTemplate
@@ -15,18 +21,25 @@ const GeneralPreferencesView = () => {
                 <li>
                     <p className="font-semibold ">Event Name</p>
                     <p className="mb-2">Use this name for quick search.</p>
-                    <p className="border px-4 py-2 rounded-2xl hover:cursor-copy">
+                    <button
+                        className="border px-4 py-2 rounded-2xl hover:cursor-copy w-full text-left hover:bg-muted"
+                        onClick={() => handleClickCopy(event?.title || "")}
+                    >
                         {event?.title || "N/A"}
-                    </p>
+                    </button>
                 </li>
                 <li>
                     <p className="font-semibold">Event Code</p>
                     <p className="mb-2">
                         Use this code to allow others to join your event.
                     </p>
-                    <p className="border px-4 py-2 rounded-2xl hover:cursor- ">
+
+                    <button
+                        className="border px-4 py-2 rounded-2xl hover:cursor-copy w-full text-left hover:bg-muted"
+                        onClick={() => handleClickCopy(event?.code || "")}
+                    >
                         {event?.code || "N/A"}
-                    </p>
+                    </button>
                 </li>
             </ul>
         </PreferencesViewTemplate>

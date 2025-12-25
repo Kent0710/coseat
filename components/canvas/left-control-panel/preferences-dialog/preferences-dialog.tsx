@@ -32,11 +32,6 @@ const PreferencesDialog = () => {
 
     const ActiveComponent = VIEWS.find((v) => v.key === activeView)?.component;
 
-    //TODO: better ui for loading state
-    if (!event) {
-        return <div>loading...</div>;
-    }
-
     return (
         <Dialog>
             <DialogTrigger asChild>
