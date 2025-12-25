@@ -1,9 +1,11 @@
 "use server";
 
 import { adminDb } from "@/lib/firebase/admin";
+import { getProfileAction } from "../profile/get-profile-action";
 
 export async function joinEventWithCodeAction(code: string) {
     try {
+        // 1. check if event with code exists
         const eventsRef = adminDb.collection("events");
         const querySnapshot = await eventsRef.where("code", "==", code).get();
 
@@ -14,7 +16,16 @@ export async function joinEventWithCodeAction(code: string) {
             };
         }
 
-        // add new object on events/members collection
+        // 2. get profile id
+        const { success: profileSuccess, profile, message: profileMessage } = await getProfileAction();
+
+        if (!profileSuccess || !profile) {
+            return { success: false, message: profileMessage };
+        };
+
+        const id = profile.id
+
+        // 3. add new object on events/members collection
         const eventDoc = querySnapshot.docs[0];
         const eventId = eventDoc.id;
 
@@ -24,6 +35,7 @@ export async function joinEventWithCodeAction(code: string) {
             .collection("members")
             .add({
                 joinedAt: new Date(),
+                profileId: id,
             });
 
         return { success: true, eventId };
