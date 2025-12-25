@@ -3,6 +3,8 @@
 import { adminDb } from "@/lib/firebase/admin";
 import { getProfileAction } from "../profile/get-profile-action";
 
+import { EVENT_ROLES } from "@/lib/utils";
+
 export async function joinEventWithCodeAction(code: string) {
     try {
         // 1. check if event with code exists
@@ -36,6 +38,7 @@ export async function joinEventWithCodeAction(code: string) {
             .add({
                 joinedAt: new Date(),
                 profileId: id,
+                role : EVENT_ROLES.PENDING,
             });
 
         return { success: true, eventId };

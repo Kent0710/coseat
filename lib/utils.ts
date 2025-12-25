@@ -5,7 +5,13 @@ import { customAlphabet } from "nanoid";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
-}
+};
+
+export const EVENT_ROLES = {
+    MEMBER: "member",
+    ADMIN: "admin",
+    PENDING: "pending",
+} as const;
 
 interface FirestoreTimestamp {
     _seconds: number;

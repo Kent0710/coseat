@@ -1,4 +1,4 @@
-"use client";
+  "use client";
 
 import { useState, useTransition } from "react";
 import { Button } from "../ui/button";
@@ -17,6 +17,8 @@ import { joinEventWithCodeAction } from "@/actions/events/join-event-with-code-a
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+
+
 
 const JoinEventWithCodeButton = () => {
     const router = useRouter();
