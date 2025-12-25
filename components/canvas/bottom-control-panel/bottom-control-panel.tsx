@@ -16,6 +16,7 @@ const BottomControlPanel: React.FC<BottomControlPanelProps> = ({ pan, zoom }) =>
             bg-white border shadow-sm rounded-2xl w-fit p-4
             absolute bottom-4 left-1/2 -translate-x-1/2
             z-50
+            animate-in slide-in-from-bottom-10 fade-in duration-300
         "
         >
             {/* Actual Container for the Controls */}
