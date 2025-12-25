@@ -5,7 +5,12 @@ import { adminAuth } from "@/lib/firebase/admin";
 
 export async function setSession(idToken: string) {
     try {
-        if (!idToken) throw new Error("ID token is required to set session");
+        if (!idToken) {
+            return {
+                success: false,
+                message: "Invalid ID token",
+            };
+        }
 
         const expiresIn = 24 * 60 * 60 * 1000;
         const sessionCookie = await adminAuth.createSessionCookie(idToken, {
@@ -13,6 +18,7 @@ export async function setSession(idToken: string) {
         });
 
         const cookieStore = await cookies();
+
         cookieStore.set("session", sessionCookie, {
             maxAge: expiresIn / 1000,
             httpOnly: true,
@@ -21,10 +27,13 @@ export async function setSession(idToken: string) {
         });
 
         return {
-            status: "success",
-            message: "Session cookie set successfully",
+            success: true,
         };
     } catch (error) {
-        throw new Error("Error setting session: " + (error as Error).message);
+        console.error("[SET_SESSION_ERROR]", error);
+        return {
+            success: false,
+            message: "Failed to set session",
+        };
     }
 }

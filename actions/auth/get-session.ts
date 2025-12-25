@@ -1,4 +1,4 @@
-'use server'
+"use server";
 
 import { adminAuth } from "@/lib/firebase/admin";
 import { cookies } from "next/headers";
@@ -8,17 +8,28 @@ export async function getSession() {
     const sessionCookie = cookieStore.get("session")?.value;
 
     if (!sessionCookie) {
-        return null;
+        return {
+            success: false,
+            message: "No session cookie found",
+        };
     }
 
     try {
-        const decodedClaims = await adminAuth.verifySessionCookie(
+        const decodedToken = await adminAuth.verifySessionCookie(
             sessionCookie,
             true
         );
-        return decodedClaims;
+
+        return {
+            decodedToken,
+            success: true,
+        };
     } catch (error) {
-        console.error("Error verifying session cookie:", error);
-        return null;
+        console.error("[GET_SESSION_ERROR]", error);
+
+        return {
+            success: false,
+            message: "Invalid session cookie",
+        };
     }
 }
