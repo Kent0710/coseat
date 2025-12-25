@@ -348,7 +348,8 @@ const Chair: React.FC<ChairProps> = ({
                 <div
                     id={id}
                     ref={chairRef}
-                    className={twMerge(`flex flex-col items-center`, className)}
+                    className={twMerge(`flex flex-col items-center 
+                        `, className)}
                     style={{
                         top: currentPosition.y,
                         left: currentPosition.x,
