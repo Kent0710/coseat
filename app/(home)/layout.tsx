@@ -7,9 +7,9 @@ const HomeLayout = ({
     children: React.ReactNode;
 }>) => {
     return (
-        <SidebarProvider>
+        <SidebarProvider className="flex">
             <AppSidebar />
-            <main className="p-8">{children}</main>
+            <main className="p-8 flex-auto ">{children}</main>
         </SidebarProvider>
     );
 };

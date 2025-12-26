@@ -1,12 +1,15 @@
+import { twMerge } from "tailwind-merge";
+
 interface WrapperProps {
     children: React.ReactNode;
     title?: string | React.ReactNode;
     description?: string;
+    className? : string;
 }
 
-export const PageWrapper = ({ children, title, description }: WrapperProps) => {
+export const PageWrapper = ({ children, title, description, className }: WrapperProps) => {
     return (
-        <div className="flex flex-col gap-2">
+        <div className={twMerge(`flex flex-col gap-4`, className)}>
             {/* Header  */}
             {(title || description) && (
                 <header>
