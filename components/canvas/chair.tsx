@@ -15,6 +15,7 @@ import {
     ChevronLeft,
     ChevronRight,
     ChevronUp,
+    Ellipsis,
     User,
 } from "lucide-react";
 import { Input } from "../ui/input";
@@ -25,6 +26,13 @@ import { deleteChairByIdAction } from "@/actions/chair/delete-chair-by-id-action
 import { updateChairAction } from "@/actions/chair/update-chair-action";
 import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 import { createNewChairAction } from "@/actions/chair/create-new-chair-action";
+
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ChairProps {
     className?: string;
@@ -44,6 +52,7 @@ const Chair: React.FC<ChairProps> = ({
     pan,
     eventId,
 }) => {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isAssigning, setIsAssigning] = useState(false);
     const [isSelected, setIsSelected] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -195,7 +204,17 @@ const Chair: React.FC<ChairProps> = ({
             document.removeEventListener("touchmove", handleTouchMove);
             document.removeEventListener("touchend", handleEnd);
         };
-    }, [isDragging, zoom, pan, dragOffset, id, setChairs, currentPosition, debouncedUpdateChair, chairs]);
+    }, [
+        isDragging,
+        zoom,
+        pan,
+        dragOffset,
+        id,
+        setChairs,
+        currentPosition,
+        debouncedUpdateChair,
+        chairs,
+    ]);
 
     // Handle chair assignment
     const handleAssign = () => {
@@ -230,6 +249,8 @@ const Chair: React.FC<ChairProps> = ({
     // Handle clicks outside to deselect
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
+            if (isDropdownOpen) return;
+
             if (
                 chairRef.current &&
                 !chairRef.current.contains(e.target as Node)
@@ -247,7 +268,7 @@ const Chair: React.FC<ChairProps> = ({
                 document.removeEventListener("mousedown", handleClickOutside);
             };
         }
-    }, [isSelected]);
+    }, [isDropdownOpen, isSelected]);
 
     const addChair = async (direction: "right" | "left" | "up" | "down") => {
         const offset = 140;
@@ -348,8 +369,11 @@ const Chair: React.FC<ChairProps> = ({
                 <div
                     id={id}
                     ref={chairRef}
-                    className={twMerge(`flex flex-col items-center 
-                        `, className)}
+                    className={twMerge(
+                        `flex flex-col items-center 
+                        `,
+                        className
+                    )}
                     style={{
                         top: currentPosition.y,
                         left: currentPosition.x,
@@ -424,6 +448,34 @@ const Chair: React.FC<ChairProps> = ({
                                     )
                                 }
                             />
+                            <DropdownMenu
+                                open={isDropdownOpen}
+                                onOpenChange={setIsDropdownOpen}
+                            >
+                                <DropdownMenuTrigger asChild>
+                                    <Ellipsis
+                                        className="absolute top-[-3rem] right-[-6rem] bg-neutral-200 border border-neutral-300 shadow-md  text-black rounded-lg cursor-pointer"
+                                        size={30}
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        onTouchStart={(e) =>
+                                            e.stopPropagation()
+                                        }
+                                    />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    className="min-w-[8rem]"
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onTouchStart={(e) => e.stopPropagation()}
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <DropdownMenuItem onSelect={handleAssign}>
+                                        Assign
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={handleDelete}>
+                                        Delete
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     )}
                 </div>
