@@ -16,13 +16,19 @@ import {
     DropdownMenuItem,
 } from "../ui/dropdown-menu";
 
-interface DraggableProps extends DraggableType {
+/*
+    This component wraps around any block component to provide drag-and-drop functionality.
+    It uses mouse and touch events to allow users to drag blocks around the canvas.
+    It also integrates with the global zoom and pan store to account for canvas transformations.
+*/
+
+interface DraggableBlockProps extends DraggableType {
     children: React.ReactNode;
     disableDrag?: boolean;
     debounceUpdate?: () => Promise<void>;
     handleDelete: () => Promise<void>;
 }
-const Draggable: React.FC<DraggableProps> = ({
+const DraggableBlock: React.FC<DraggableBlockProps> = ({
     children,
     x,
     y,
@@ -254,6 +260,7 @@ const Draggable: React.FC<DraggableProps> = ({
             }}
         >
             {children}
+            
             {isSelected && (
                 <DropdownMenu
                     open={isDropdownOpen}
@@ -283,4 +290,4 @@ const Draggable: React.FC<DraggableProps> = ({
     );
 };
 
-export default Draggable;
+export default DraggableBlock;

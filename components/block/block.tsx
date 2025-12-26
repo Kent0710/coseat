@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
 import { BlockType } from "@/lib/types";
-import Draggable from "./draggable";
 import useBlocksStore from "@/store/use-blocks";
 
 import {
@@ -16,6 +15,12 @@ import { deleteBlockByIdAction } from "@/actions/block/delete-block-by-id-action
 import { toast } from "sonner";
 import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 import { updateBlockAction } from "@/actions/block/update-block-action";
+import DraggableBlock from "./draggable-block";
+
+/*
+    This component represents a resizable and draggable block on the canvas.
+    It handles edge detection for resizing and integrates with the global blocks store.
+*/
 
 interface BlockProps extends BlockType {
     zoom: number;
@@ -663,7 +668,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
     };
 
     return (
-        <Draggable
+        <DraggableBlock
             x={x}
             y={y}
             id={id}
@@ -709,7 +714,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
                     </ContextMenuItem>
                 </ContextMenuContent>
             </ContextMenu>
-        </Draggable>
+        </DraggableBlock>
     );
 };
 

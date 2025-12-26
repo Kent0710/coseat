@@ -1,6 +1,6 @@
 "use client";
 
-import Block from "./block";
+import Block from "../block/block";
 
 import { redirect, usePathname } from "next/navigation";
 import useZoomPanStore from "@/store/use-zoom-pan";

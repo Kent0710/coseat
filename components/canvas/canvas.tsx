@@ -6,8 +6,9 @@ import BottomControlPanel from "@/components/canvas/bottom-control-panel/bottom-
 import LeftControlPanel from "@/components/canvas/left-control-panel/left-control-panel";
 import { useEffect, useRef, useState } from "react";
 import useZoomPanStore from "@/store/use-zoom-pan";
-import RenderChairs from "./render-chairs";
-import RenderBlocks from "./render-blocks";
+
+import RenderBlocks from "../block/render-blocks";
+import RenderChairs from "../chair/render-chairs";
 
 interface CanvasProps {
     eventId: string;
