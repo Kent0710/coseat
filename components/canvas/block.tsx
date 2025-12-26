@@ -678,6 +678,7 @@ const Block: React.FC<BlockProps> = ({ id, x, y, width, height, eventId }) => {
                 onEdge.bottomRight
             }
             debounceUpdate={debouncedUpdateBlock}
+            handleDelete={handleDelete}
         >
             <ContextMenu>
                 <ContextMenuTrigger>

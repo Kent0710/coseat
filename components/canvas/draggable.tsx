@@ -1,15 +1,26 @@
 "use client";
 
+import { Ellipsis } from "lucide-react";
+
 import { BlockType, DraggableType } from "@/lib/types";
 import useBlocksStore from "@/store/use-blocks";
 import useZoomPanStore from "@/store/use-zoom-pan";
 import React, { useRef, useState, useEffect } from "react";
 import { toast } from "sonner";
+import useIsSelected from "@/store/use-selected";
+
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+} from "../ui/dropdown-menu";
 
 interface DraggableProps extends DraggableType {
     children: React.ReactNode;
     disableDrag?: boolean;
     debounceUpdate?: () => Promise<void>;
+    handleDelete: () => Promise<void>;
 }
 const Draggable: React.FC<DraggableProps> = ({
     children,
@@ -18,19 +29,24 @@ const Draggable: React.FC<DraggableProps> = ({
     id,
     disableDrag,
     debounceUpdate,
+    handleDelete,
 }) => {
     const [currentBlock, setCurrentBlock] = useState<BlockType | null>(null);
     const { blocks, setBlocks } = useBlocksStore();
+    const { isSelected, setIsSelected } = useIsSelected();
 
     // zoom and pan offsets
     const { zoom, pan } = useZoomPanStore();
 
-    const [isSelected, setIsSelected] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
 
     // Offsets
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-    const [initialDragPosition, setInitialDragPosition] = useState({ x: 0, y: 0 });
+    const [initialDragPosition, setInitialDragPosition] = useState({
+        x: 0,
+        y: 0,
+    });
 
     const ref = useRef<HTMLDivElement>(null);
 
@@ -161,13 +177,13 @@ const Draggable: React.FC<DraggableProps> = ({
 
         const handleEnd = () => {
             setIsDragging(false);
-            
+
             if (debounceUpdate && currentBlock) {
                 // Check if position actually changed from initial position
                 const didMove =
                     Math.abs(currentBlock.x - initialDragPosition.x) > 0.5 ||
                     Math.abs(currentBlock.y - initialDragPosition.y) > 0.5;
-                    
+
                 if (didMove) {
                     debounceUpdate();
                     toast.success("Block position updated");
@@ -186,13 +202,29 @@ const Draggable: React.FC<DraggableProps> = ({
             document.removeEventListener("mouseup", handleEnd);
             document.removeEventListener("touchend", handleEnd);
         };
-    }, [dragOffset.x, dragOffset.y, isDragging, pan.x, pan.y, zoom, disableDrag, setBlocks, id, debounceUpdate, blocks, currentBlock, initialDragPosition.x, initialDragPosition.y]);
+    }, [
+        dragOffset.x,
+        dragOffset.y,
+        isDragging,
+        pan.x,
+        pan.y,
+        zoom,
+        disableDrag,
+        setBlocks,
+        id,
+        debounceUpdate,
+        blocks,
+        currentBlock,
+        initialDragPosition.x,
+        initialDragPosition.y,
+    ]);
 
     useEffect(() => {
         // Handle clicks outside to deselect
         const handleClickOutside = (e: MouseEvent) => {
             if (ref.current && !ref.current.contains(e.target as Node)) {
                 setIsSelected(false);
+                setIsDropdownOpen(false);
             }
         };
 
@@ -202,7 +234,7 @@ const Draggable: React.FC<DraggableProps> = ({
                 document.removeEventListener("mousedown", handleClickOutside);
             };
         }
-    }, [isSelected]);
+    }, [isSelected, setIsSelected]);
 
     return (
         <div
@@ -222,6 +254,31 @@ const Draggable: React.FC<DraggableProps> = ({
             }}
         >
             {children}
+            {isSelected && (
+                <DropdownMenu
+                    open={isDropdownOpen}
+                    onOpenChange={setIsDropdownOpen}
+                >
+                    <DropdownMenuTrigger asChild>
+                        <Ellipsis
+                            className="absolute top-[-3rem] right-[-3rem] bg-neutral-200 border border-neutral-300 shadow-md  text-black rounded-lg cursor-pointer"
+                            size={30}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
+                        />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                        className="min-w-[8rem]"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <DropdownMenuItem onSelect={handleDelete}>
+                            Delete
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            )}
         </div>
     );
 };
