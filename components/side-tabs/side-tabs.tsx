@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { JSX } from "react";
+import { twMerge } from "tailwind-merge";
 
 /*
     A side tab component to be used in various settings and preferences dialogs.
@@ -16,18 +17,20 @@ interface SideTabsProps {
         label: string;
         component: () => JSX.Element;
     }[];
+    className? : string;
 }
 
 const SideTabs : React.FC<SideTabsProps> = ({
     ViewType,
     Views,
+    className
 }) => {
     const [activeTab, setActiveTab] = useState<typeof ViewType>(ViewType);
 
     const ActiveComponent = Views.find((v) => v.key === activeTab)?.component;
 
     return (
-        <div className="flex gap-6 min-h-[20rem]">
+        <div className={twMerge(`flex gap-6 min-h-[20rem]`, className)}>
             {/* Navigation Sidebar */}
             <nav className="w-48 border-r pr-4">
                 <ul className="space-y-1">

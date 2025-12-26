@@ -1,7 +1,8 @@
 "use client";
 
 import { Trash } from "lucide-react";
-import { PreferencesViewTemplate } from "./preferences-dialog";
+import SideTabsViewTemplate from "@/components/side-tabs/side-tabs-view-template";
+
 import { Button } from "@/components/ui/button";
 
 import { deleteEventByIdAction } from "@/actions/events/delete-event-by-id-action";
@@ -29,7 +30,7 @@ const DangerPreferencesViwe = () => {
     };
 
     return (
-        <PreferencesViewTemplate
+        <SideTabsViewTemplate
             title="Danger Zone"
             description="Proceed with caution, these may have irreversible effects."
         >
@@ -51,7 +52,7 @@ const DangerPreferencesViwe = () => {
                     </Button>
                 </li>
             </ul>
-        </PreferencesViewTemplate>
+        </SideTabsViewTemplate>
     );
 };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import useEventStore from "@/store/use-event";
-import { PreferencesViewTemplate } from "./preferences-dialog";
+import SideTabsViewTemplate from "@/components/side-tabs/side-tabs-view-template";
 import { toast } from "sonner";
 
 const GeneralPreferencesView = () => {
@@ -13,7 +13,7 @@ const GeneralPreferencesView = () => {
     };
 
     return (
-        <PreferencesViewTemplate
+        <SideTabsViewTemplate
             title="General"
             description="General settings for your event."
         >
@@ -42,7 +42,7 @@ const GeneralPreferencesView = () => {
                     </button>
                 </li>
             </ul>
-        </PreferencesViewTemplate>
+        </SideTabsViewTemplate>
     );
 };
 

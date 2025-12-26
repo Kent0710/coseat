@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Settings2 } from "lucide-react";
-import React, { JSX, useState } from "react";
+import { JSX } from "react";
 import GeneralPreferencesView from "./general-preferences-view";
 import DangerPreferencesViwe from "./danger-preferences-view";
+import SideTabs from "@/components/side-tabs/side-tabs";
 
 type ViewType = "general" | "danger";
 
@@ -28,10 +29,6 @@ const VIEWS: ViewConfig[] = [
 ];
 
 const PreferencesDialog = () => {
-    const [activeView, setActiveView] = useState<ViewType>("general");
-
-    const ActiveComponent = VIEWS.find((v) => v.key === activeView)?.component;
-
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -48,59 +45,10 @@ const PreferencesDialog = () => {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex gap-6 min-h-[20rem]">
-                    {/* Navigation Sidebar */}
-                    <nav className="w-48 border-r pr-4">
-                        <ul className="space-y-1">
-                            {VIEWS.map(({ key, label }) => (
-                                <li key={key}>
-                                    <button
-                                        onClick={() => setActiveView(key)}
-                                        className={`
-                                            w-full text-left px-3 py-2 rounded-md text-sm
-                                            transition-colors
-                                            ${
-                                                activeView === key
-                                                    ? "bg-primary text-primary-foreground"
-                                                    : "hover:bg-muted"
-                                            }
-                                        `}
-                                    >
-                                        {label}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
-
-                    {/* Content Area */}
-                    <section className="flex-1">
-                        {ActiveComponent && <ActiveComponent />}
-                    </section>
-                </div>
+                <SideTabs ViewType="general" Views={VIEWS} />
             </DialogContent>
         </Dialog>
     );
 };
 
 export default PreferencesDialog;
-
-// the template for consistent view style
-
-interface PreferencesViewTemplateProps {
-    title: string;
-    description: string;
-    children: React.ReactNode;
-}
-
-export const PreferencesViewTemplate: React.FC<
-    PreferencesViewTemplateProps
-> = ({ title, description, children }) => {
-    return (
-        <div>
-            <h2 className="text-lg font-semibold">{title}</h2>
-            <p className="border-b pb-4 mb-4">{description}</p>
-            <div>{children}</div>
-        </div>
-    );
-};

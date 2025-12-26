@@ -1,7 +1,6 @@
-"use client";
+'use client'
 
 import { JSX } from "react";
-
 
 import { PageWrapper } from "@/components/wrappers";
 import GeneralAccountSettingsView from "@/components/settings/general-account-settings-view";
