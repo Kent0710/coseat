@@ -7,7 +7,6 @@ import useBlocksStore from "@/store/use-blocks";
 import useZoomPanStore from "@/store/use-zoom-pan";
 import React, { useRef, useState, useEffect } from "react";
 import { toast } from "sonner";
-import useIsSelected from "@/store/use-selected";
 
 import {
     DropdownMenu,
@@ -39,7 +38,7 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({
 }) => {
     const [currentBlock, setCurrentBlock] = useState<BlockType | null>(null);
     const { blocks, setBlocks } = useBlocksStore();
-    const { isSelected, setIsSelected } = useIsSelected();
+    const [isSelected, setIsSelected] = useState(false);
 
     // zoom and pan offsets
     const { zoom, pan } = useZoomPanStore();
