@@ -7,6 +7,7 @@ import { useCallback, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 import { createNewChairAction } from "@/actions/chair/create-new-chair-action";
+import { generateTemporaryChairId } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface AddChairControlProps {
@@ -17,9 +18,14 @@ interface AddChairControlProps {
 const AddChairControl: React.FC<AddChairControlProps> = ({ pan, zoom }) => {
     const pathname = usePathname();
 
-    const { setChairs } = useChairsStore();
+    const { chairs, setChairs } = useChairsStore();
 
     const handleClick = useCallback(async () => {
+        const chairsCopy = chairs;
+
+        // Generate temporary chair for optimistic UI
+        const tempChairId = generateTemporaryChairId();
+
         // Transform screen center to canvas coordinates
         const screenCenterX = window.innerWidth / 2;
         const screenCenterY = window.innerHeight / 2;
@@ -27,7 +33,16 @@ const AddChairControl: React.FC<AddChairControlProps> = ({ pan, zoom }) => {
         const canvasX = (screenCenterX - pan.x) / zoom;
         const canvasY = (screenCenterY - pan.y) / zoom;
 
-        //TODO: use optimistic UI update here
+        setChairs((prev) => [
+            ...prev,
+            {
+                id: tempChairId,
+                x: canvasX,
+                y: canvasY,
+                name: "",
+            },
+        ]);
+
         const { success, message, newChair } = await createNewChairAction(
             pathname.split("/")[2],
             canvasX,
@@ -35,21 +50,22 @@ const AddChairControl: React.FC<AddChairControlProps> = ({ pan, zoom }) => {
         );
 
         if (!success || !newChair) {
+            // Revert optimistic update
+            setChairs(chairsCopy);
+
             console.error(message);
             toast.error("Something went wrong. Please try again.");
             return;
+        } else {
+            // Replace temporary chair with the one from the server
+            setChairs((prev) =>
+                prev.map((chair) =>
+                    chair.id === tempChairId ? newChair : chair
+                )
+            );
+            toast.success("Chair added successfully!");
         }
-
-        setChairs((prev) => [
-            ...prev,
-            {
-                id: newChair.id,
-                x: newChair.x,
-                y: newChair.y,
-                name: newChair.name,
-            },
-        ]);
-    }, [pan.x, pan.y, pathname, setChairs, zoom]);
+    }, [chairs, pan.x, pan.y, pathname, setChairs, zoom]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
