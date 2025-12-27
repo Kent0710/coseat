@@ -7,7 +7,7 @@ import { useCallback, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 import { createNewChairAction } from "@/actions/chair/create-new-chair-action";
-import { generateTemporaryChairId } from "@/lib/utils";
+import { generateTemporaryId } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface AddChairControlProps {
@@ -24,7 +24,7 @@ const AddChairControl: React.FC<AddChairControlProps> = ({ pan, zoom }) => {
         const chairsCopy = chairs;
 
         // Generate temporary chair for optimistic UI
-        const tempChairId = generateTemporaryChairId();
+        const tempChairId = generateTemporaryId();
 
         // Transform screen center to canvas coordinates
         const screenCenterX = window.innerWidth / 2;

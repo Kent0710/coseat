@@ -52,7 +52,7 @@ export const generateEventCode = () => {
     return eventCode();
 };
 
-export const generateTemporaryChairId = () => {
+export const generateTemporaryId = () => {
     const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     const tempIdGenerator = customAlphabet(alphabet, 10);
     return `temp_${tempIdGenerator()}`;
